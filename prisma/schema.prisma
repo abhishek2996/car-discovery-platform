@@ -1,0 +1,404 @@
+// Car Discovery – Prisma schema
+// DATABASE_URL should be set in .env (local/dev/prod). When running from repo root,
+// use car-discovery/.env or pass url via env.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Seed: run with `npx prisma db seed` or `npm run db:seed`
+
+// ============== Enums ==============
+
+enum UserRole {
+  BUYER
+  DEALER
+  ADMIN
+}
+
+enum DealerStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum LeadType {
+  ENQUIRY
+  TEST_DRIVE
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  IN_PROGRESS
+  COMPLETED
+  DROPPED
+}
+
+enum TestDriveSlotStatus {
+  REQUESTED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum ReviewType {
+  EXPERT
+  USER
+}
+
+enum BodyType {
+  HATCHBACK
+  SEDAN
+  SUV
+  MUV
+  COUPÉ
+  CONVERTIBLE
+  WAGON
+  PICKUP
+  LUXURY
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  CNG
+  ELECTRIC
+  HYBRID
+  PLUGIN_HYBRID
+}
+
+enum TransmissionType {
+  MANUAL
+  AUTOMATIC
+  AMT
+  CVT
+  DCT
+  SINGLE_SPEED
+  DUAL_CLUTCH
+}
+
+enum ContentArticleType {
+  NEWS
+  EXPERT_REVIEW
+  FEATURE
+  COMPARISON
+}
+
+enum InventoryVisibility {
+  DRAFT
+  VISIBLE
+  HIDDEN
+}
+
+// ============== User & Auth ==============
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  phone         String?
+  role          UserRole  @default(BUYER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+
+  dealer             Dealer?
+  leadsAsBuyer       Lead[]           @relation("LeadBuyer")
+  testDriveSlots     TestDriveSlot[]
+  reviews            Review[]
+  savedSearches      SavedSearch[]
+  savedComparisons   SavedComparison[]
+  contentAuthored    ContentArticle[]  @relation("ContentAuthor")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at       Int?
+  token_type       String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============== Dealer ==============
+
+model Dealer {
+  id          String        @id @default(cuid())
+  userId      String        @unique
+  name        String
+  slug        String        @unique
+  city        String
+  address     String?       @db.Text
+  state       String?
+  pincode     String?
+  phone       String?
+  email       String?
+  status      DealerStatus  @default(PENDING)
+  logoUrl     String?
+  bannerUrl   String?
+  description String?       @db.Text
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user              User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inventoryItems    DealerInventoryItem[]
+  leads             Lead[]
+  testDriveSlots    TestDriveSlot[]
+  reviews           Review[]
+  dealerBrands      DealerBrand[]
+}
+
+model DealerBrand {
+  id        String   @id @default(cuid())
+  dealerId  String
+  brandId   String
+  createdAt DateTime @default(now())
+
+  dealer Dealer   @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  brand  CarBrand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@unique([dealerId, brandId])
+}
+
+// ============== Car catalog ==============
+
+model CarBrand {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  logoUrl   String?
+  country   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  models         CarModel[]
+  dealerBrands   DealerBrand[]
+  upcomingCars   UpcomingCar[]
+}
+
+model CarModel {
+  id          String   @id @default(cuid())
+  brandId     String
+  name        String
+  slug        String
+  bodyType    BodyType?
+  segment     String?   // e.g. compact, mid-size, luxury
+  minPrice    Decimal?  @db.Decimal(12, 2)
+  maxPrice    Decimal?  @db.Decimal(12, 2)
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  brand   CarBrand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  variants CarVariant[]
+  upcomingCars UpcomingCar[]
+  leads       Lead[]     @relation("LeadCarModel")
+
+  @@unique([brandId, slug])
+}
+
+model CarVariant {
+  id              String            @id @default(cuid())
+  modelId         String
+  name            String            // e.g. "VXi", "ZXi+"
+  slug            String
+  fuelType        FuelType?
+  transmission    TransmissionType?
+  engine          String?           @db.Text
+  power           String?           // e.g. "88 bhp"
+  torque          String?
+  mileage         String?           // e.g. "18.5 kmpl"
+  seating         Int?
+  length          Int?              // mm
+  width           Int?
+  height          Int?
+  wheelbase       Int?
+  bootCapacity    Int?              // litres
+  fuelTank        Int?              // litres
+  exShowroomPrice Decimal?          @db.Decimal(12, 2)
+  imageUrl        String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  model     CarModel             @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  inventory  DealerInventoryItem[]
+  leads     Lead[]               @relation("LeadCarVariant")
+  testDriveSlots TestDriveSlot[]
+  reviews   Review[]
+
+  @@unique([modelId, slug])
+}
+
+// ============== Dealer inventory ==============
+
+model DealerInventoryItem {
+  id            String              @id @default(cuid())
+  dealerId      String
+  variantId     String
+  onRoadPrice   Decimal?             @db.Decimal(12, 2)
+  stockStatus   String?              // e.g. IN_STOCK, OUT_OF_STOCK, EXPECTED
+  offers        String?              @db.Text // JSON or description
+  visibility    InventoryVisibility  @default(VISIBLE)
+  colorOptions  String?              @db.Text // JSON array
+  imageUrls     String?              @db.Text // JSON array or Uploadthing keys
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  dealer  Dealer   @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  variant CarVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([dealerId, variantId])
+}
+
+// ============== Leads / Enquiries ==============
+
+model Lead {
+  id          String     @id @default(cuid())
+  buyerId     String
+  dealerId    String
+  type        LeadType
+  status      LeadStatus @default(NEW)
+  source      String?    // e.g. car_detail, dealer_page, comparison
+  carModelId  String?
+  carVariantId String?
+  message     String?    @db.Text
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  buyer    User      @relation("LeadBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  dealer   Dealer    @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  carModel CarModel? @relation("LeadCarModel", fields: [carModelId], references: [id], onDelete: SetNull)
+  carVariant CarVariant? @relation("LeadCarVariant", fields: [carVariantId], references: [id], onDelete: SetNull)
+}
+
+// ============== Test drive ==============
+
+model TestDriveSlot {
+  id        String              @id @default(cuid())
+  dealerId  String
+  variantId String
+  buyerId   String
+  slotAt    DateTime
+  status    TestDriveSlotStatus @default(REQUESTED)
+  notes     String?             @db.Text
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  dealer  Dealer     @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  variant CarVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  buyer   User       @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+}
+
+// ============== Reviews ==============
+
+model Review {
+  id        String     @id @default(cuid())
+  type      ReviewType
+  rating    Int        // 1-5
+  title     String?
+  content   String?    @db.Text
+  carVariantId String?
+  dealerId  String?
+  authorId  String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  carVariant CarVariant? @relation(fields: [carVariantId], references: [id], onDelete: SetNull)
+  dealer     Dealer?     @relation(fields: [dealerId], references: [id], onDelete: SetNull)
+  author     User?       @relation(fields: [authorId], references: [id], onDelete: SetNull)
+}
+
+// ============== Upcoming cars ==============
+
+model UpcomingCar {
+  id              String   @id @default(cuid())
+  brandId         String
+  modelId         String?
+  name            String   // display name if no model yet
+  expectedLaunch  String?  // e.g. "Q2 2025"
+  estimatedPrice  String?   @db.Text
+  keyHighlights   String?  @db.Text // JSON or bullet text
+  imageUrl        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  brand  CarBrand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  model  CarModel? @relation(fields: [modelId], references: [id], onDelete: SetNull)
+}
+
+// ============== Content / News ==============
+
+model ContentArticle {
+  id          String            @id @default(cuid())
+  type        ContentArticleType
+  title       String
+  slug        String            @unique
+  body        String?            @db.Text
+  heroMediaUrl String?
+  tags        String?            @db.Text // JSON array or comma-separated
+  authorId    String?
+  publishedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  author User? @relation("ContentAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+}
+
+// ============== Buyer UX (optional) ==============
+
+model SavedSearch {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String?
+  filters   String   @db.Text // JSON: brandIds, bodyType, fuel, budgetMin, budgetMax, city, etc.
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SavedComparison {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String?
+  variantIds  String   @db.Text // JSON array of CarVariant ids
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
