@@ -1,0 +1,351 @@
+# Cursor Rules
+
+## Instructions
+
+- Record fixes for mistakes or corrections to avoid repetition in the `Lessons` section.
+- Organize thoughts and plan steps before starting a task in the `Scratchpad` section.
+- Clear old tasks if necessary.
+- Use todo markers for progress tracking:
+  - `[X]` Completed tasks
+  - `[ ]` Pending tasks
+- Update Scratchpad after completing subtasks.
+- Reflect and plan after milestones for better task management.
+- Always refer to Scratchpad before planning the next step.
+
+## Lessons
+
+1. Use `npx shadcn@latest add [component]` instead of `npx shadcn-ui@latest add [component]` when installing Shadcn UI components.
+2. In Next.js 14+, page props params must be typed as a Promise. Example:
+   ```typescript
+   type tParams = Promise<{ id: string }>
+   interface PageProps {
+     params: tParams
+   }
+   ```
+   Then await the params in the component:
+   ```typescript
+   export default async function Page(props: PageProps) {
+     const { id } = await props.params
+   }
+   ```
+3. Use `const session = await auth()` instead of `const session = await getServerSession(authOptions)` for Next.js authentication. The new `auth()` function is the recommended way to get the session in Next.js Auth v5.
+4. When importing `useRouter` from 'next/navigation', the component must be marked as a client component using the `'use client'` directive at the top of the file, as this hook only works on the client side.
+
+## Scratchpad
+
+Here's your complete project scratchpad for a CarDekho-style car discovery website with Dealer and Admin dashboards:
+
+---
+
+### 1. Project Setup and Configuration [ ]
+
+- [ ] Initialize Next.js 15 project with TypeScript
+- [ ] Set up project structure and folders
+- [ ] Configure ESLint and Prettier
+- [ ] Install and configure dependencies:
+  - Shadcn UI components
+  - Lucide icons
+  - Zod for validation
+  - Zustand for state management
+  - Recharts for analytics
+  - Resend for emails
+  - Uploadthing for file uploads
+  - Prisma ORM
+  - PostgreSQL database
+  - NextAuth.js beta for authentication
+  - Stripe / Razorpay for payments
+  - Mapbox / Google Maps API for location features
+
+---
+
+### 2. Database and Authentication [ ]
+
+- [ ] Set up PostgreSQL database
+- [ ] Configure Prisma schema:
+  - User model (buyer, dealer, admin roles)
+  - Car model (new & used)
+  - Brand & Model model
+  - Dealer / Showroom model
+  - Enquiry model
+  - Review & Rating model
+  - Comparison model
+  - Wishlist model
+  - Lead / Test Drive Request model
+  - News & Article model
+- [ ] Implement NextAuth.js authentication:
+  - Email/Password
+  - OAuth providers (Google, Facebook)
+  - JWT handling
+  - Role-based protected routes (buyer / dealer / admin)
+
+---
+
+### 3. Core Features - Public / Buyer Side [ ]
+
+- [ ] Home Layout:
+  - Create `(home)` folder in `app` directory
+  - Header with logo, search bar (by budget / brand / model), city selector, and navigation
+  - Footer with links, social media, app download section
+- [ ] Homepage:
+  - Hero search section (New Car / Used Car tabs)
+  - Most searched cars by body type (SUV, Hatchback, Sedan, MUV, Luxury)
+  - Electric Cars section
+  - Upcoming Cars section with "Alert Me" CTA
+  - Latest Launches carousel
+  - Popular Brands grid
+  - Car Comparisons section
+  - News & Reviews section
+  - Visual Stories carousel
+- [ ] New Cars Catalog:
+  - Sidebar filters: budget range, brand, body type, fuel type, transmission, seating capacity
+  - Search results grid with car cards (name, price, key specs, image)
+  - Sorting (popularity, price low-high, newest)
+  - Pagination / infinite scroll
+- [ ] Car Detail Page:
+  - Image gallery with 360° view support
+  - Car overview: name, price (ex-showroom), launch date, variant selector
+  - Key specs summary (engine, mileage, transmission, seating)
+  - Full specifications accordion (engine, dimensions, safety, features)
+  - Color variants picker
+  - EMI calculator widget
+  - Expert review section
+  - User reviews & ratings (with add review form for authenticated users)
+  - Pro/Con summary
+  - Similar cars carousel
+  - Compare with rival cars CTA
+  - Dealer locator for this car
+  - Enquiry / Test Drive Request form
+- [ ] Used Cars:
+  - Search by city, budget, brand, year, km driven
+  - Used car listing page with filter sidebar
+  - Individual used car detail page:
+    - Inspection report highlights
+    - Ownership history
+    - Seller type (individual / dealer)
+    - Contact seller / make offer form
+  - Sell My Car flow:
+    - Step 1: Enter car registration / details
+    - Step 2: Car condition & photos upload
+    - Step 3: Get instant valuation
+    - Step 4: Connect with buyers / dealers
+  - Used Car Valuation tool
+- [ ] Car Comparison:
+  - Select up to 3 cars to compare side-by-side
+  - Specs comparison table (highlight winner per row)
+  - Price & value verdict
+  - Share comparison link
+- [ ] Electric Cars Section:
+  - EV-specific filters: range, charging time, battery capacity
+  - EV charging station locator (map view)
+  - Total cost of ownership calculator
+- [ ] Upcoming Cars:
+  - Upcoming launches list with expected date & estimated price
+  - "Alert Me When Launched" subscription (email/push)
+- [ ] News & Reviews:
+  - News listing page with category filters
+  - Expert reviews with star rating and verdict
+  - Video reviews (embedded YouTube / own player)
+  - Visual stories (story-style cards)
+  - Individual article/review page with related articles
+- [ ] Find Dealers:
+  - Dealer search by city / brand
+  - Dealer listing with map view (Mapbox / Google Maps)
+  - Individual dealer profile page
+- [ ] User Dashboard:
+  - Wishlist / saved cars
+  - Enquiries & test drive requests history
+  - Car alerts (upcoming cars, price drops)
+  - Profile management
+  - "My Cars" (listed used cars)
+  - Reviews posted
+
+---
+
+### 4. Dealer Dashboard [ ]
+
+- [ ] Dealer authentication and authorization
+- [ ] Dashboard Overview:
+  - [ ] Layout & Structure:
+    - [ ] Dealer sidebar navigation
+    - [ ] Responsive grid for widgets
+    - [ ] Loading states and error boundaries
+  - [ ] Key Metrics Cards:
+    - [ ] Total leads received
+    - [ ] Total enquiries this month
+    - [ ] Test drive requests pending
+    - [ ] Inventory count (new & used)
+  - [ ] Lead Analytics:
+    - [ ] Line chart: leads over time (daily/weekly/monthly)
+    - [ ] Lead source breakdown (organic, paid, direct)
+    - [ ] Conversion funnel (enquiry → test drive → sale)
+  - [ ] Recent Leads Table:
+    - [ ] Columns: Lead ID, Customer name, Car interested in, Date, Status
+    - [ ] Sorting and filtering
+    - [ ] Quick actions (call, mark contacted, mark converted)
+- [ ] Inventory Management:
+  - [ ] Add new car listing (new & used)
+  - [ ] Edit / update existing listings
+  - [ ] Delete / mark as sold
+  - [ ] Bulk actions (activate, deactivate, delete)
+  - [ ] Image upload for each listing (Uploadthing)
+  - [ ] Stock level indicators and low stock alerts
+- [ ] Lead & Enquiry Management:
+  - [ ] Enquiry list with status (new, contacted, converted, closed)
+  - [ ] Test drive request calendar view
+  - [ ] Assign leads to sales staff
+  - [ ] Notes / follow-up reminders per lead
+  - [ ] Lead status update & history log
+- [ ] Dealer Profile Management:
+  - [ ] Showroom details (name, address, city, contact)
+  - [ ] Operating hours
+  - [ ] Brands authorized to sell
+  - [ ] Logo & showroom photos upload
+  - [ ] Verified badge request
+- [ ] Reviews & Ratings:
+  - [ ] View customer reviews for dealership
+  - [ ] Reply to reviews
+- [ ] Offers & Promotions:
+  - [ ] Create limited-time offers on listed cars
+  - [ ] Set discount amount / special price
+  - [ ] Offer expiry date management
+- [ ] Reports & Export:
+  - [ ] Monthly leads report (CSV/PDF)
+  - [ ] Inventory report
+  - [ ] Custom date range selection
+
+---
+
+### 5. Admin Dashboard [ ]
+
+- [ ] Admin authentication and authorization
+- [ ] Dashboard Overview:
+  - [ ] Layout & Structure:
+    - [ ] Admin sidebar navigation
+    - [ ] Responsive widget grid
+    - [ ] Loading states and error boundaries
+  - [ ] Key Metrics Cards:
+    - [ ] Total registered users
+    - [ ] Total active dealers
+    - [ ] Total car listings (new & used)
+    - [ ] Total enquiries platform-wide
+    - [ ] Monthly revenue (subscription / lead fees)
+  - [ ] Platform Analytics:
+    - [ ] Revenue chart (line chart, daily/weekly/monthly/yearly)
+    - [ ] New user signups over time
+    - [ ] Enquiry volume chart (bar chart)
+    - [ ] Top searched cars & brands
+    - [ ] Traffic by city heatmap
+  - [ ] Recent Activity Table:
+    - [ ] New dealer registrations
+    - [ ] Recent car listings added
+    - [ ] Flagged content / reports
+  - [ ] Low-Quality Listing Alerts:
+    - [ ] Listings missing images or key specs
+    - [ ] Quick review & approve / reject actions
+  - [ ] Top Performing Dealers:
+    - [ ] Dealers by lead volume
+    - [ ] Dealers by listing count
+  - [ ] Real-time Updates:
+    - [ ] WebSocket for live new listing / enquiry notifications
+    - [ ] Live dealer activity feed
+- [ ] Car Catalog Management:
+  - [ ] Add / edit / delete brands
+  - [ ] Add / edit / delete car models and variants
+  - [ ] Manage specifications master data
+  - [ ] Manage body types, fuel types, transmission types
+  - [ ] Bulk import cars via CSV
+  - [ ] Image management for official car photos (Uploadthing)
+- [ ] Used Car Listings Moderation:
+  - [ ] Review and approve / reject user-submitted used cars
+  - [ ] Flag suspicious listings
+  - [ ] Edit listing details
+- [ ] Dealer Management:
+  - [ ] Dealer list with status (pending, active, suspended)
+  - [ ] Approve / reject dealer registration
+  - [ ] Assign subscription plan
+  - [ ] View dealer performance metrics
+  - [ ] Suspend / reactivate dealer accounts
+- [ ] User Management:
+  - [ ] User list with roles (buyer, dealer, admin)
+  - [ ] Search and filter users
+  - [ ] View user activity & enquiry history
+  - [ ] Ban / deactivate user accounts
+  - [ ] Promote user to dealer or admin role
+- [ ] Enquiry & Lead Management:
+  - [ ] Platform-wide enquiry list
+  - [ ] Assign unattended leads to dealers
+  - [ ] Enquiry status tracking
+- [ ] News & Content Management:
+  - [ ] Create / edit / publish news articles
+  - [ ] Expert reviews management (draft, publish, unpublish)
+  - [ ] Visual stories management
+  - [ ] Video reviews management
+  - [ ] SEO metadata management per article
+- [ ] Upcoming Cars Management:
+  - [ ] Add / edit upcoming car entries
+  - [ ] Manage expected launch date & estimated price
+  - [ ] Trigger "Alert Me" email notifications on launch
+- [ ] Offers & Promotions Management:
+  - [ ] Platform-wide offers and seasonal campaigns
+  - [ ] Approve dealer-created promotions
+  - [ ] Banner / ad slot management for homepage
+- [ ] Email System (Resend):
+  - [ ] Enquiry confirmation to buyer
+  - [ ] Lead notification to dealer
+  - [ ] Upcoming car launch alerts
+  - [ ] Dealer registration approval / rejection
+  - [ ] Password reset
+- [ ] Reports & Export:
+  - [ ] Platform revenue report (CSV/PDF)
+  - [ ] User growth report
+  - [ ] Dealer performance report
+  - [ ] Custom date range selection
+
+---
+
+### 6. Advanced Features [ ]
+
+- [ ] Real-time notifications (WebSocket / Pusher)
+- [ ] AI-powered car recommendation engine ("Find Your Right Car" quiz)
+- [ ] EMI calculator (embeddable widget)
+- [ ] Car insurance integration (quotes)
+- [ ] Car loan / finance lead capture
+- [ ] Fuel price tracker by city
+- [ ] EV charging station map
+- [ ] Push notifications (PWA)
+- [ ] SEO optimization:
+  - [ ] Dynamic sitemap generation
+  - [ ] Structured data (JSON-LD) for car listings
+  - [ ] OpenGraph metadata for social sharing
+- [ ] Performance optimization:
+  - [ ] Image optimization (Next.js Image)
+  - [ ] Caching strategies (Redis / Next.js cache)
+  - [ ] API response optimization
+- [ ] Mobile-first responsive design
+
+---
+
+### 7. Testing and Deployment [ ]
+
+- [ ] Unit testing
+- [ ] Integration testing
+- [ ] E2E testing (Playwright / Cypress)
+- [ ] Security audit (OWASP basics, rate limiting, input sanitization)
+- [ ] Production deployment:
+  - [ ] Environment setup (Vercel / AWS)
+  - [ ] CI/CD pipeline
+  - [ ] Monitoring (Sentry / Datadog)
+  - [ ] Database backup strategy
+  - [ ] CDN for media assets
+
+---
+
+### 8. Documentation [ ]
+
+- [ ] API documentation
+- [ ] Buyer / user guide
+- [ ] Dealer onboarding guide
+- [ ] Admin documentation
+- [ ] Deployment guide
+
+---
