@@ -68,21 +68,21 @@
       - [x] `ContentArticle` / `NewsItem` (type, title, slug, body, hero media, tags, author)
       - [x] `SavedSearch` / `SavedComparison` (optional, for buyer UX)
     - [x] Run initial Prisma migration and seed minimal reference data (brands, body types, fuel types)
-  - [ ] Authentication & sessions with `next-auth@beta`
-    - [ ] Configure Auth.js route handlers, Prisma adapter, and session callbacks
-    - [ ] Implement credentials/email provider (and optional OAuth provider later)
-    - [ ] Encode role into JWT / session and expose strong TypeScript types
-    - [ ] Create reusable `requireUser` / `requireRole` server helpers
-  - [ ] Role-based authorization & routing
-    - [ ] Define route/segment guards for public, dealer, and admin areas
-    - [ ] Enforce RBAC in server actions & DB queries (dealers can only see their data, admins global)
-    - [ ] Add shared `AccessDenied` and `NotFound` UI patterns
+  - [x] Authentication & sessions with `next-auth@beta`
+    - [x] Configure Auth.js route handlers, Prisma adapter, and session callbacks
+    - [x] Implement credentials/email provider (and optional OAuth provider later)
+    - [x] Encode role into JWT / session and expose strong TypeScript types
+    - [x] Create reusable `requireUser` / `requireRole` server helpers
+  - [x] Role-based authorization & routing
+    - [x] Define route/segment guards for public, dealer, and admin areas
+    - [x] Enforce RBAC in server actions & DB queries (dealers can only see their data, admins global)
+    - [x] Add shared `AccessDenied` and `NotFound` UI patterns
 
 - [ ] Phase 3 – Public-facing new car discovery site
   - [ ] Global site shell
     - [ ] Top navigation with logo, brand/budget/body-type search entry, and quick links (Compare, Upcoming, Reviews, Dealers)
     - [ ] Footer with SEO-friendly links (brands, body types, cities, popular comparisons) and contact/info links
-    - [ ] City selector + persistent state (cookie or search param) for location-aware content
+    - [ ] City selector for United kingdom (cookie or search param) for location-aware content
   - [ ] New car catalog
     - [ ] Home page hero with primary search (by brand, budget, body type)
     - [ ] Brand directory (grid of brands linking to brand-specific listing)

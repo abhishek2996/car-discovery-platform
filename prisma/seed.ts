@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -38,7 +39,29 @@ async function main() {
     });
   }
 
-  console.log("Seed complete: brands and minimal reference data.");
+  const passwordHash = await hash("password123", 10);
+  await prisma.user.upsert({
+    where: { email: "admin@example.com" },
+    update: {},
+    create: {
+      email: "admin@example.com",
+      name: "Admin User",
+      password: passwordHash,
+      role: "ADMIN",
+    },
+  });
+  await prisma.user.upsert({
+    where: { email: "buyer@example.com" },
+    update: {},
+    create: {
+      email: "buyer@example.com",
+      name: "Buyer User",
+      password: passwordHash,
+      role: "BUYER",
+    },
+  });
+
+  console.log("Seed complete: brands, reference data, and test users (admin@example.com, buyer@example.com / password123).");
 }
 
 main()
