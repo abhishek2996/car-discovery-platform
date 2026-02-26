@@ -33,12 +33,196 @@
 
 ## Scratchpad
 
-Here's your complete project scratchpad for a CarDekho-style car discovery website with Dealer and Admin dashboards:
+- [ ] Phase 1 – Project foundation & stack
+  - [ ] Confirm Next.js 15 App Router + TypeScript setup in `src/app`
+  - [ ] Configure base tooling
+    - [ ] ESLint + Prettier + TypeScript strict mode
+    - [ ] Path alias `@/*` and shared `ui`, `lib`, `types` folders
+  - [ ] Install and configure core dependencies
+    - [ ] Shadcn UI (init, theme, `button`, `input`, `card`, `table`, `dialog`, `sheet`, `dropdown-menu`, `tabs`, `badge`)
+    - [ ] Lucide icons wired into nav, sidebar, status chips
+    - [ ] Zod for shared validation schemas (server + client)
+    - [ ] Zustand for client-side dashboard state (filters, modals, multi-step forms)
+    - [ ] Recharts for analytics charts in dashboards
+    - [ ] Resend for transactional emails
+    - [ ] Uploadthing for image & file uploads
+    - [ ] Prisma ORM with PostgreSQL
+    - [ ] `next-auth@beta` for authentication (Auth.js v5 style)
+  - [ ] Set up base layouts & design system
+    - [ ] Global typography, color tokens, spacing, and elevation
+    - [ ] Shared `AppShell` primitives (topbar, sidebar, content area, page header, data table)
 
----
+- [ ] Phase 2 – Data modeling, database & auth
+  - [ ] PostgreSQL & Prisma
+    - [ ] Configure database connection for local/dev/prod
+    - [ ] Define Prisma schema
+      - [ ] `User` (roles: `BUYER`, `DEALER`, `ADMIN`; profile fields; contact info)
+      - [ ] `Dealer` (showroom details, city, brands, contact, status, logo/banner media)
+      - [ ] `CarBrand` and `CarModel` (variants, body type, fuel, transmission, segments, price ranges)
+      - [ ] `CarVariant` (detailed specs used in comparison & detail pages)
+      - [ ] `DealerInventoryItem` (dealer, variant, stock status, on-road price, offers, visibility)
+      - [ ] `Lead` / `Enquiry` (buyer, dealer, car context, source, type: enquiry vs test drive, status, timestamps)
+      - [ ] `TestDriveSlot` (dealer, car, date/time, buyer, status)
+      - [ ] `Review` (expert vs user, rating, content, references to car & dealer)
+      - [ ] `UpcomingCar` (brand, model, expected launch, estimated price, key highlights)
+      - [ ] `ContentArticle` / `NewsItem` (type, title, slug, body, hero media, tags, author)
+      - [ ] `SavedSearch` / `SavedComparison` (optional, for buyer UX)
+    - [ ] Run initial Prisma migration and seed minimal reference data (brands, body types, fuel types)
+  - [ ] Authentication & sessions with `next-auth@beta`
+    - [ ] Configure Auth.js route handlers, Prisma adapter, and session callbacks
+    - [ ] Implement credentials/email provider (and optional OAuth provider later)
+    - [ ] Encode role into JWT / session and expose strong TypeScript types
+    - [ ] Create reusable `requireUser` / `requireRole` server helpers
+  - [ ] Role-based authorization & routing
+    - [ ] Define route/segment guards for public, dealer, and admin areas
+    - [ ] Enforce RBAC in server actions & DB queries (dealers can only see their data, admins global)
+    - [ ] Add shared `AccessDenied` and `NotFound` UI patterns
 
-### 1. Project Setup and Configuration [ ]
+- [ ] Phase 3 – Public-facing new car discovery site
+  - [ ] Global site shell
+    - [ ] Top navigation with logo, brand/budget/body-type search entry, and quick links (Compare, Upcoming, Reviews, Dealers)
+    - [ ] Footer with SEO-friendly links (brands, body types, cities, popular comparisons) and contact/info links
+    - [ ] City selector + persistent state (cookie or search param) for location-aware content
+  - [ ] New car catalog
+    - [ ] Home page hero with primary search (by brand, budget, body type)
+    - [ ] Brand directory (grid of brands linking to brand-specific listing)
+    - [ ] Listing page(s) with filters
+      - [ ] Filters: brand, budget range, body type, fuel, transmission, seating, features
+      - [ ] Sort: popularity, price (low→high / high→low), newest
+      - [ ] Responsive card grid using Shadcn & Lucide for spec badges
+      - [ ] Server-side pagination or infinite scroll
+    - [ ] Zod-powered validation for search/filter inputs
+  - [ ] Car detail & comparison
+    - [ ] Car detail page
+      - [ ] Image gallery with Uploadthing-backed images
+      - [ ] Price summary (ex-showroom and by city if available)
+      - [ ] Key highlights & quick spec summary
+      - [ ] Full specifications by section (engine, performance, dimensions, safety, features)
+      - [ ] Variant selector with spec/price changes
+      - [ ] Expert review summary & rating
+      - [ ] User reviews list + submission form (buyers only)
+      - [ ] Similar cars carousel by segment/budget
+    - [ ] Comparison flow
+      - [ ] Multi-select comparison widget (up to 3 cars) from listing & detail pages
+      - [ ] Comparison page with grouped spec table (highlight “best” per row)
+      - [ ] Ability to save/share comparisons (optional: hashed share links)
+  - [ ] Discovery content & upcoming cars
+    - [ ] Upcoming cars listing with filters (brand, body type, expected launch window)
+    - [ ] Upcoming car detail (summary, estimated price, key specs)
+    - [ ] “Alert me” subscription flow (email capture saved to DB, Resend email on launch)
+    - [ ] News / expert reviews index with tags and pagination
+    - [ ] Article / review detail pages with related content section
+  - [ ] Dealer locator & lead capture
+    - [ ] Dealer locator search (by city, brand)
+    - [ ] Dealer listing with basic info, key brands, distance/city filter
+    - [ ] Dealer detail page (showroom media, brands, inventory highlights, ratings)
+    - [ ] Enquiry form (lead type: general / specific car) with Zod validation
+    - [ ] Test drive request form with date/time selection and preferred car
+    - [ ] Persist leads to DB and trigger Resend emails to buyer + dealer
+  - [ ] Buyer “My activity” (authenticated)
+    - [ ] View enquiries & test drive requests and statuses
+    - [ ] View saved comparisons / saved cars (if implemented)
+    - [ ] Manage profile and communication preferences
 
+- [ ] Phase 4 – Dealer dashboard
+  - [ ] Dealer onboarding & access
+    - [ ] Dealer signup request flow (public entry) mapped to `Dealer` + `User` with `DEALER` role
+    - [ ] Admin approval gate before a dealer can access dashboard features
+    - [ ] Dealer-only layout (`/dealer`) with sidebar, top bar, and responsive shell
+  - [ ] Inventory management
+    - [ ] Inventory list view for new car variants the dealer sells
+      - [ ] Table with search, sort, filters, pagination
+      - [ ] Columns: car, variant, on-road price, stock, visibility, offers, last updated
+    - [ ] Add/edit inventory item flow
+      - [ ] Link inventory to existing `CarVariant`
+      - [ ] Configure display price, stock, color availability, visibility
+      - [ ] Upload photos via Uploadthing
+      - [ ] Validation via Zod + optimistic UI with Zustand
+  - [ ] Lead & enquiry management
+    - [ ] Leads list (tabbed by status: new, in-progress, completed, dropped)
+      - [ ] Table with key fields (buyer, car, source, created at, status, owner)
+      - [ ] Quick filters (lead source, car, time range)
+    - [ ] Lead detail page
+      - [ ] Timeline of activities and status changes
+      - [ ] Notes, next follow-up date, internal tags
+    - [ ] Status updates & notifications
+      - [ ] Actions: mark contacted, schedule test drive, mark completed, mark lost
+      - [ ] Resend notifications to buyer on key status changes (e.g., test drive confirmed)
+  - [ ] Test drive scheduling
+    - [ ] Calendar view of booked test drives for each showroom
+    - [ ] Integration with `TestDriveSlot` entries (create/update/cancel)
+    - [ ] Buyer-facing reschedule/cancel hooks (simple, via link in email or dashboard)
+  - [ ] Offer management
+    - [ ] CRUD interface for dealer-specific offers on inventory items
+    - [ ] Validity periods, discount type/amount, highlight flags
+    - [ ] Surface offers on public catalog & car detail pages
+  - [ ] Dealer analytics (Recharts)
+    - [ ] Leads over time (line chart by day/week/month)
+    - [ ] Lead source breakdown (bar/pie)
+    - [ ] Conversion funnel from enquiry → test drive → marked as “won”
+    - [ ] Inventory performance table (views, leads, conversion) per variant
+
+- [ ] Phase 5 – Admin dashboard
+  - [ ] Admin access & layout
+    - [ ] Admin-only layout (`/admin`) with sidebar, top metrics header, and responsive grid
+    - [ ] Strict RBAC checks for all admin routes and actions
+  - [ ] Platform analytics (Recharts)
+    - [ ] Summary cards: total leads, active dealers, active buyers, active listings
+    - [ ] Leads over time and by source
+    - [ ] Popular brands, models, body types by views and leads
+    - [ ] City-wise heatmap or table for demand (views/leads by city)
+  - [ ] Car catalog management
+    - [ ] CRUD for `CarBrand`, `CarModel`, `CarVariant`, and shared spec taxonomies
+    - [ ] Bulk import/update variants via CSV/JSON
+    - [ ] Media management for official photos via Uploadthing
+  - [ ] Dealer management
+    - [ ] Dealer registrations review queue (approve/reject)
+    - [ ] Dealer directory with filters (status, city, brands)
+    - [ ] Ability to suspend/restore dealer access
+  - [ ] User & role management
+    - [ ] User list with search and filters
+    - [ ] View user history (leads, activity)
+    - [ ] Update roles (e.g., promote dealer staff, assign admin)
+  - [ ] Lead oversight
+    - [ ] Global lead list with filters (dealer, status, source, date range)
+    - [ ] Reassign leads between dealers or mark escalated
+  - [ ] Content & CMS-lite
+    - [ ] CRUD for news, expert reviews, and content articles
+    - [ ] Tagging, featured flags, and publish/unpublish
+    - [ ] SEO fields (slug, meta title/description, open graph image)
+    - [ ] Manage upcoming car records and trigger launch notifications
+
+- [ ] Phase 6 – Cross-cutting services, UX, and integrations
+  - [ ] Validation & error handling
+    - [ ] Centralized Zod schemas for forms (enquiry, test drive, dealer onboarding, inventory, content)
+    - [ ] Consistent error surfaces using Shadcn components (toasts, inline errors)
+  - [ ] State management & UX polish
+    - [ ] Use Zustand for shared dashboard states (filters, selected entities, wizards)
+    - [ ] Loading skeletons, optimistic updates, and empty states for all major lists
+  - [ ] Email workflows with Resend
+    - [ ] Buyer emails: enquiry confirmation, test drive confirmation/update, upcoming car alerts
+    - [ ] Dealer emails: new lead notification, test drive booking details
+    - [ ] Admin emails: new dealer signup, critical system alerts
+  - [ ] File uploads with Uploadthing
+    - [ ] Car images, dealer showroom media, article hero images
+    - [ ] Safe file type/size validation and cleanup strategy
+
+- [ ] Phase 7 – Testing, performance, and deployment
+  - [ ] Automated testing
+    - [ ] Unit tests for core domain logic and Zod schemas
+    - [ ] Integration tests for auth, RBAC, and key flows (lead creation, inventory updates)
+    - [ ] E2E tests for main journeys (buyer discovery, dealer lead handling, admin approvals)
+  - [ ] Observability & quality
+    - [ ] Logging and basic error tracking
+    - [ ] Performance passes (Lighthouse) for key public pages
+    - [ ] SEO checks for car, brand, comparison, and content pages
+  - [ ] Deployment & environments
+    - [ ] Configure environment variables for database, Auth.js, Resend, Uploadthing
+    - [ ] Production deployment (e.g., Vercel) with Prisma migrations
+    - [ ] Basic backup/restore strategy for PostgreSQL
+    - [ ] Smoke checklist for each portal (public, dealer, admin) before go-live
+
+*** End of File
 - [ ] Initialize Next.js 15 project with TypeScript
 - [ ] Set up project structure and folders
 - [ ] Configure ESLint and Prettier
@@ -115,7 +299,7 @@ Here's your complete project scratchpad for a CarDekho-style car discovery websi
   - Compare with rival cars CTA
   - Dealer locator for this car
   - Enquiry / Test Drive Request form
-- [ ] Used Cars:
+- [ ] Used Cars: 
   - Search by city, budget, brand, year, km driven
   - Used car listing page with filter sidebar
   - Individual used car detail page:
