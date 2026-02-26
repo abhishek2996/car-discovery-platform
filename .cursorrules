@@ -33,24 +33,24 @@
 
 ## Scratchpad
 
-- [ ] Phase 1 – Project foundation & stack
-  - [ ] Confirm Next.js 15 App Router + TypeScript setup in `src/app`
-  - [ ] Configure base tooling
-    - [ ] ESLint + Prettier + TypeScript strict mode
-    - [ ] Path alias `@/*` and shared `ui`, `lib`, `types` folders
-  - [ ] Install and configure core dependencies
-    - [ ] Shadcn UI (init, theme, `button`, `input`, `card`, `table`, `dialog`, `sheet`, `dropdown-menu`, `tabs`, `badge`)
-    - [ ] Lucide icons wired into nav, sidebar, status chips
-    - [ ] Zod for shared validation schemas (server + client)
-    - [ ] Zustand for client-side dashboard state (filters, modals, multi-step forms)
-    - [ ] Recharts for analytics charts in dashboards
-    - [ ] Resend for transactional emails
-    - [ ] Uploadthing for image & file uploads
-    - [ ] Prisma ORM with PostgreSQL
-    - [ ] `next-auth@beta` for authentication (Auth.js v5 style)
-  - [ ] Set up base layouts & design system
-    - [ ] Global typography, color tokens, spacing, and elevation
-    - [ ] Shared `AppShell` primitives (topbar, sidebar, content area, page header, data table)
+- [x] Phase 1 – Project foundation & stack
+  - [x] Confirm Next.js 15 App Router + TypeScript setup in `src/app`
+  - [x] Configure base tooling
+    - [x] ESLint + Prettier + TypeScript strict mode
+    - [x] Path alias `@/*` and shared `ui`, `lib`, `types` folders
+  - [x] Install and configure core dependencies
+    - [x] Shadcn UI (init, theme, `button`, `input`, `card`, `table`, `dialog`, `sheet`, `dropdown-menu`, `tabs`, `badge`)
+    - [x] Lucide icons wired into nav, sidebar, status chips
+    - [x] Zod for shared validation schemas (server + client)
+    - [x] Zustand for client-side dashboard state (filters, modals, multi-step forms)
+    - [x] Recharts for analytics charts in dashboards
+    - [x] Resend for transactional emails
+    - [x] Uploadthing for image & file uploads
+    - [x] Prisma ORM with PostgreSQL
+    - [x] `next-auth@beta` for authentication (Auth.js v5 style)
+  - [x] Set up base layouts & design system
+    - [x] Global typography, color tokens, spacing, and elevation
+    - [x] Shared `AppShell` primitives (topbar, sidebar, content area, page header, data table)
 
 - [ ] Phase 2 – Data modeling, database & auth
   - [ ] PostgreSQL & Prisma
