@@ -24,7 +24,7 @@ export const authConfig: NextAuthConfig = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as UserRole;
-        session.user.dealerId = token.dealerId ?? undefined;
+        session.user.dealerId = (token.dealerId as string | null) ?? undefined;
       }
       return session;
     },
