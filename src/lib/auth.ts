@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import type { UserRole } from "@prisma/client";
+import type { UserRole } from "@/generated/prisma";
 
 export type SessionUser = {
   id: string;

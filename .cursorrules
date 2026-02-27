@@ -222,25 +222,6 @@
     - [ ] Basic backup/restore strategy for PostgreSQL
     - [ ] Smoke checklist for each portal (public, dealer, admin) before go-live
 
-*** End of File
-- [ ] Initialize Next.js 15 project with TypeScript
-- [ ] Set up project structure and folders
-- [ ] Configure ESLint and Prettier
-- [ ] Install and configure dependencies:
-  - Shadcn UI components
-  - Lucide icons
-  - Zod for validation
-  - Zustand for state management
-  - Recharts for analytics
-  - Resend for emails
-  - Uploadthing for file uploads
-  - Prisma ORM
-  - PostgreSQL database
-  - NextAuth.js beta for authentication
-  - Stripe / Razorpay for payments
-  - Mapbox / Google Maps API for location features
-
----
 
 ### 2. Database and Authentication [ ]
 
