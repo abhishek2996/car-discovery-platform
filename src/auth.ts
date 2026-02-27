@@ -38,7 +38,8 @@ declare module "@auth/core/jwt" {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  adapter: PrismaAdapter(prisma),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  adapter: PrismaAdapter(prisma as any) as any,
   providers: [
     Credentials({
       name: "credentials",

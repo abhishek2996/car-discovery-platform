@@ -14,8 +14,8 @@ export const authConfig: NextAuthConfig = {
   callbacks: {
     jwt({ token, user }) {
       if (user) {
-        token.id = (user as { id?: string }).id;
-        token.role = (user as { role?: UserRole }).role;
+        token.id = (user as { id: string }).id;
+        token.role = (user as { role: UserRole }).role;
         token.dealerId = (user as { dealerId?: string | null }).dealerId ?? null;
       }
       return token;
