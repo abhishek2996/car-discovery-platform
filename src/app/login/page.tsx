@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "@/auth";
+import { AuthError } from "next-auth";
 
 export default async function LoginPage({
   searchParams,
@@ -29,11 +30,18 @@ export default async function LoginPage({
         <form
           action={async (formData: FormData) => {
             "use server";
-            await signIn("credentials", {
-              email: formData.get("email") as string,
-              password: formData.get("password") as string,
-              callbackUrl,
-            });
+            try {
+              await signIn("credentials", {
+                email: formData.get("email") as string,
+                password: formData.get("password") as string,
+                redirectTo: callbackUrl,
+              });
+            } catch (error) {
+              if (error instanceof AuthError) {
+                redirect(`/login?error=${error.type}&callbackUrl=${encodeURIComponent(callbackUrl)}`);
+              }
+              throw error;
+            }
           }}
           className="space-y-4"
         >

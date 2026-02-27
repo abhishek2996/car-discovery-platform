@@ -1,7 +1,10 @@
 import { PrismaClient } from "../src/generated/prisma";
+import { PrismaNeon } from "@prisma/adapter-neon";
 import { hash } from "bcryptjs";
+import "dotenv/config";
 
-const prisma = new PrismaClient();
+const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL! });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   const brands = [
