@@ -6,36 +6,6 @@ import { prisma } from "@/lib/db";
 import type { UserRole } from "@/generated/prisma";
 import { authConfig } from "@/auth.config";
 
-declare module "next-auth" {
-  interface User {
-    id: string;
-    email: string;
-    name?: string | null;
-    image?: string | null;
-    role: UserRole;
-    dealerId?: string | null;
-  }
-
-  interface Session {
-    user: {
-      id: string;
-      email: string;
-      name?: string | null;
-      image?: string | null;
-      role: UserRole;
-      dealerId?: string | null;
-    };
-  }
-}
-
-declare module "@auth/core/jwt" {
-  interface JWT {
-    id: string;
-    role: UserRole;
-    dealerId?: string | null;
-  }
-}
-
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
