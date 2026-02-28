@@ -78,7 +78,7 @@
     - [x] Enforce RBAC in server actions & DB queries (dealers can only see their data, admins global)
     - [x] Add shared `AccessDenied` and `NotFound` UI patterns
 
-- [ ] Phase 3 – Public-facing new car discovery site
+- [X] Phase 3 – Public-facing new car discovery site
   - [X] Global site shell
     - [X] Top navigation with logo, brand/budget/body-type search entry, and quick links (Compare, Upcoming, Reviews, Dealers)
     - [X] Footer with SEO-friendly links (brands, body types, cities, popular comparisons) and contact/info links
@@ -92,37 +92,37 @@
       - [X] Responsive card grid using Shadcn & Lucide for spec badges
       - [X] Server-side pagination or infinite scroll
     - [X] Zod-powered validation for search/filter inputs
-  - [ ] Car detail & comparison
-    - [ ] Car detail page
-      - [ ] Image gallery with Uploadthing-backed images
-      - [ ] Price summary (ex-showroom and by city if available)
-      - [ ] Key highlights & quick spec summary
-      - [ ] Full specifications by section (engine, performance, dimensions, safety, features)
-      - [ ] Variant selector with spec/price changes
-      - [ ] Expert review summary & rating
-      - [ ] User reviews list + submission form (buyers only)
-      - [ ] Similar cars carousel by segment/budget
-    - [ ] Comparison flow
-      - [ ] Multi-select comparison widget (up to 3 cars) from listing & detail pages
-      - [ ] Comparison page with grouped spec table (highlight “best” per row)
-      - [ ] Ability to save/share comparisons (optional: hashed share links)
-  - [ ] Discovery content & upcoming cars
-    - [ ] Upcoming cars listing with filters (brand, body type, expected launch window)
-    - [ ] Upcoming car detail (summary, estimated price, key specs)
-    - [ ] “Alert me” subscription flow (email capture saved to DB, Resend email on launch)
-    - [ ] News / expert reviews index with tags and pagination
-    - [ ] Article / review detail pages with related content section
-  - [ ] Dealer locator & lead capture
-    - [ ] Dealer locator search (by city, brand)
-    - [ ] Dealer listing with basic info, key brands, distance/city filter
-    - [ ] Dealer detail page (showroom media, brands, inventory highlights, ratings)
-    - [ ] Enquiry form (lead type: general / specific car) with Zod validation
-    - [ ] Test drive request form with date/time selection and preferred car
-    - [ ] Persist leads to DB and trigger Resend emails to buyer + dealer
-  - [ ] Buyer “My activity” (authenticated)
-    - [ ] View enquiries & test drive requests and statuses
-    - [ ] View saved comparisons / saved cars (if implemented)
-    - [ ] Manage profile and communication preferences
+  - [X] Car detail & comparison
+    - [X] Car detail page
+      - [X] Image gallery with Uploadthing-backed images
+      - [X] Price summary (ex-showroom and by city if available)
+      - [X] Key highlights & quick spec summary
+      - [X] Full specifications by section (engine, performance, dimensions, safety, features)
+      - [X] Variant selector with spec/price changes
+      - [X] Expert review summary & rating
+      - [X] User reviews list + submission form (buyers only)
+      - [X] Similar cars carousel by segment/budget
+    - [X] Comparison flow
+      - [X] Multi-select comparison widget (up to 3 cars) from listing & detail pages
+      - [X] Comparison page with grouped spec table (highlight “best” per row)
+      - [X] Ability to save/share comparisons (optional: hashed share links)
+  - [X] Discovery content & upcoming cars
+    - [X] Upcoming cars listing with filters (brand, body type, expected launch window)
+    - [X] Upcoming car detail (summary, estimated price, key specs)
+    - [X] “Alert me” subscription flow (email capture saved to DB, Resend email on launch)
+    - [X] News / expert reviews index with tags and pagination
+    - [X] Article / review detail pages with related content section
+  - [X] Dealer locator & lead capture
+    - [X] Dealer locator search (by city, brand)
+    - [X] Dealer listing with basic info, key brands, distance/city filter
+    - [X] Dealer detail page (showroom media, brands, inventory highlights, ratings)
+    - [X] Enquiry form (lead type: general / specific car) with Zod validation
+    - [X] Test drive request form with date/time selection and preferred car
+    - [X] Persist leads to DB and trigger Resend emails to buyer + dealer
+  - [X] Buyer “My activity” (authenticated)
+    - [X] View enquiries & test drive requests and statuses
+    - [X] View saved comparisons / saved cars (if implemented)
+    - [X] Manage profile and communication preferences
 
 - [ ] Phase 4 – Dealer dashboard
   - [ ] Dealer onboarding & access

@@ -406,8 +406,277 @@ async function main() {
     },
   });
 
+  // --- Dealer user & dealer records ---
+  const dealerUser = await prisma.user.upsert({
+    where: { email: "dealer@example.com" },
+    update: {},
+    create: {
+      email: "dealer@example.com",
+      name: "London Motors",
+      password: passwordHash,
+      role: "DEALER",
+    },
+  });
+
+  const dealerUser2 = await prisma.user.upsert({
+    where: { email: "dealer2@example.com" },
+    update: {},
+    create: {
+      email: "dealer2@example.com",
+      name: "Manchester Cars",
+      password: passwordHash,
+      role: "DEALER",
+    },
+  });
+
+  const dealer1 = await prisma.dealer.upsert({
+    where: { slug: "london-motors" },
+    update: {},
+    create: {
+      userId: dealerUser.id,
+      name: "London Motors",
+      slug: "london-motors",
+      city: "London",
+      address: "123 Park Lane, Mayfair",
+      state: "Greater London",
+      pincode: "W1K 1AA",
+      phone: "020 7946 0958",
+      email: "info@londonmotors.co.uk",
+      status: "ACTIVE",
+      description: "Premium multi-brand dealership in the heart of London. Authorised dealer for BMW, Mercedes-Benz, and Audi with over 20 years of experience.",
+    },
+  });
+
+  const dealer2 = await prisma.dealer.upsert({
+    where: { slug: "manchester-cars" },
+    update: {},
+    create: {
+      userId: dealerUser2.id,
+      name: "Manchester Cars",
+      slug: "manchester-cars",
+      city: "Manchester",
+      address: "456 Deansgate",
+      state: "Greater Manchester",
+      pincode: "M3 4LY",
+      phone: "0161 234 5678",
+      email: "info@manchestercars.co.uk",
+      status: "ACTIVE",
+      description: "Your trusted car dealer in Manchester. Specialists in Volkswagen, Škoda, and SEAT. Comprehensive test drive facility.",
+    },
+  });
+
+  // Dealer brands
+  const bmwBrand = await brand("bmw");
+  const mbBrand = await brand("mercedes-benz");
+  const audiBrand = await brand("audi");
+  const vwBrand = await brand("volkswagen");
+  const skodaBrand = await brand("skoda");
+  const seatBrand = await brand("seat");
+
+  for (const brandRecord of [bmwBrand, mbBrand, audiBrand]) {
+    await prisma.dealerBrand.upsert({
+      where: { dealerId_brandId: { dealerId: dealer1.id, brandId: brandRecord.id } },
+      update: {},
+      create: { dealerId: dealer1.id, brandId: brandRecord.id },
+    });
+  }
+
+  for (const brandRecord of [vwBrand, skodaBrand, seatBrand]) {
+    await prisma.dealerBrand.upsert({
+      where: { dealerId_brandId: { dealerId: dealer2.id, brandId: brandRecord.id } },
+      update: {},
+      create: { dealerId: dealer2.id, brandId: brandRecord.id },
+    });
+  }
+
+  // Inventory items for dealer1
+  const bmw3 = await prisma.carModel.findFirst({ where: { slug: "3-series" }, include: { variants: true } });
+  if (bmw3) {
+    for (const v of bmw3.variants) {
+      await prisma.dealerInventoryItem.upsert({
+        where: { dealerId_variantId: { dealerId: dealer1.id, variantId: v.id } },
+        update: {},
+        create: {
+          dealerId: dealer1.id,
+          variantId: v.id,
+          onRoadPrice: v.exShowroomPrice ? Number(v.exShowroomPrice) * 1.08 : null,
+          stockStatus: "IN_STOCK",
+          visibility: "VISIBLE",
+        },
+      });
+    }
+  }
+
+  const vwGolf = await prisma.carModel.findFirst({ where: { slug: "golf" }, include: { variants: true } });
+  if (vwGolf) {
+    for (const v of vwGolf.variants) {
+      await prisma.dealerInventoryItem.upsert({
+        where: { dealerId_variantId: { dealerId: dealer2.id, variantId: v.id } },
+        update: {},
+        create: {
+          dealerId: dealer2.id,
+          variantId: v.id,
+          onRoadPrice: v.exShowroomPrice ? Number(v.exShowroomPrice) * 1.08 : null,
+          stockStatus: "IN_STOCK",
+          visibility: "VISIBLE",
+        },
+      });
+    }
+  }
+
+  // --- Upcoming cars ---
+  const teslaBrand = await brand("tesla");
+  const toyotaBrand = await brand("toyota");
+  const hyundaiBrand = await brand("hyundai");
+
+  const upcomingCarsData = [
+    {
+      brandId: teslaBrand.id,
+      name: "Tesla Model 2",
+      expectedLaunch: "Q3 2026",
+      estimatedPrice: "£25,000 – £32,000",
+      keyHighlights: JSON.stringify([
+        "Compact hatchback form factor",
+        "Estimated 250+ mile range",
+        "New LFP battery technology",
+        "Full self-driving hardware included",
+      ]),
+    },
+    {
+      brandId: toyotaBrand.id,
+      name: "Toyota bZ3X",
+      expectedLaunch: "Q1 2027",
+      estimatedPrice: "£35,000 – £45,000",
+      keyHighlights: JSON.stringify([
+        "All-electric SUV on e-TNGA platform",
+        "Dual-motor AWD option",
+        "300+ mile range expected",
+        "Advanced Toyota Safety Sense 4.0",
+      ]),
+    },
+    {
+      brandId: hyundaiBrand.id,
+      name: "Hyundai IONIQ 7",
+      expectedLaunch: "Q2 2026",
+      estimatedPrice: "£55,000 – £70,000",
+      keyHighlights: JSON.stringify([
+        "Full-size electric SUV",
+        "Three-row seating for 7",
+        "800V ultra-fast charging",
+        "Level 3 autonomous capability",
+      ]),
+    },
+    {
+      brandId: bmwBrand.id,
+      name: "BMW Neue Klasse Saloon",
+      expectedLaunch: "Q4 2026",
+      estimatedPrice: "£45,000 – £65,000",
+      keyHighlights: JSON.stringify([
+        "All-new electric architecture",
+        "Next-gen iDrive with panoramic display",
+        "Solid-state battery option",
+        "0-60 mph in under 4 seconds",
+      ]),
+    },
+  ];
+
+  for (const uc of upcomingCarsData) {
+    const existing = await prisma.upcomingCar.findFirst({ where: { name: uc.name } });
+    if (!existing) {
+      await prisma.upcomingCar.create({ data: uc });
+    }
+  }
+
+  // --- Content articles ---
+  const adminUser = await prisma.user.findUnique({ where: { email: "admin@example.com" } });
+
+  const articlesData = [
+    {
+      type: "NEWS" as const,
+      title: "Tesla Confirms UK Launch Date for Compact Model 2",
+      slug: "tesla-model-2-uk-launch-date",
+      body: "Tesla has officially confirmed that the much-anticipated Model 2 compact hatchback will go on sale in the UK in Q3 2026. The entry-level electric vehicle is expected to start at around £25,000, making it one of the most affordable Tesla vehicles ever produced.\n\nThe Model 2 will feature a new LFP battery pack designed for maximum efficiency, offering an estimated range of over 250 miles on a single charge. Tesla CEO Elon Musk stated that the vehicle would include Full Self-Driving hardware as standard, a first for a sub-£30,000 Tesla.\n\nPre-orders are expected to open in early 2026, with first deliveries beginning in the summer. The Model 2 will be manufactured at Tesla's Berlin Gigafactory, specifically targeting European markets.",
+      tags: "Tesla,Electric,Compact,Launch",
+      publishedAt: new Date("2025-12-15"),
+    },
+    {
+      type: "EXPERT_REVIEW" as const,
+      title: "2025 BMW 3 Series Review: The Benchmark Saloon Gets Better",
+      slug: "2025-bmw-3-series-review",
+      body: "The BMW 3 Series has long been the benchmark for sports saloons, and the 2025 model year continues that tradition with refinements across the range.\n\nStarting from £39,300 for the 320i SE, the 3 Series offers a compelling blend of driving dynamics, technology, and everyday usability. The 320d M Sport remains our pick of the range, delivering an excellent balance of performance and efficiency with 55.4 mpg combined.\n\nFor those seeking electrification, the 330e M Sport plug-in hybrid provides 288 bhp and a real-world electric range of around 35 miles – ideal for urban commutes.\n\nThe interior benefits from BMW's latest iDrive 8 system with a curved display, and the driving dynamics remain class-leading with precise steering and a compliant yet engaging chassis setup.",
+      tags: "BMW,3 Series,Saloon,Expert Review",
+      publishedAt: new Date("2025-11-20"),
+    },
+    {
+      type: "COMPARISON" as const,
+      title: "Electric SUV Shootout: Tesla Model Y vs Volvo XC40 vs BMW iX1",
+      slug: "electric-suv-comparison-2025",
+      body: "The electric SUV segment is one of the most competitive in the UK market right now. We put three of the best head to head to find out which offers the best overall package.\n\nThe Tesla Model Y remains the benchmark for range and technology, with up to 331 miles from the Long Range AWD variant. Its Supercharger network advantage is undeniable.\n\nThe Volvo XC40 Recharge brings Scandinavian design and premium interior quality, with 402 bhp making it the most powerful of the three. Safety credentials are also class-leading.\n\nThe BMW iX1 xDrive30 offers the most engaging driving experience, with typical BMW dynamics and a well-balanced chassis. At 272 miles of range, it trails the Tesla but is more than adequate for most buyers.\n\nOur verdict: The Tesla Model Y wins on value and range, the Volvo on luxury, and the BMW on driving enjoyment. Your choice depends on your priorities.",
+      tags: "Electric,SUV,Comparison,Tesla,Volvo,BMW",
+      publishedAt: new Date("2026-01-10"),
+    },
+    {
+      type: "FEATURE" as const,
+      title: "The Complete Guide to Plug-in Hybrids in 2026",
+      slug: "plug-in-hybrid-guide-2026",
+      body: "Plug-in hybrids continue to be a popular choice for UK buyers transitioning to electric. Here's everything you need to know about PHEVs in 2026.\n\nPHEVs combine a petrol engine with an electric motor and battery, offering the flexibility of short electric-only commutes with the security of a petrol engine for longer journeys. Most modern PHEVs offer 30-50 miles of electric range.\n\nKey benefits include reduced company car tax (BIK rates from 2%), zero-emission zone eligibility in many cities, and significantly lower fuel costs compared to pure petrol alternatives.\n\nPopular choices include the BMW 330e, Mercedes A 250e, Hyundai Tucson PHEV, and the Range Rover Evoque P300e. All offer genuine real-world electric range and refined performance.",
+      tags: "PHEV,Hybrid,Guide,Electric",
+      publishedAt: new Date("2026-02-01"),
+    },
+  ];
+
+  for (const article of articlesData) {
+    await prisma.contentArticle.upsert({
+      where: { slug: article.slug },
+      update: {},
+      create: {
+        ...article,
+        authorId: adminUser?.id ?? null,
+      },
+    });
+  }
+
+  // --- Reviews ---
+  const buyerUser = await prisma.user.findUnique({ where: { email: "buyer@example.com" } });
+
+  if (bmw3 && buyerUser && adminUser) {
+    for (const v of bmw3.variants.slice(0, 2)) {
+      const existingReview = await prisma.review.findFirst({
+        where: { authorId: buyerUser.id, carVariantId: v.id },
+      });
+      if (!existingReview) {
+        await prisma.review.create({
+          data: {
+            type: "USER",
+            rating: 4,
+            title: `Great ${v.name} variant`,
+            content: `I've been driving the ${v.name} for three months now and it's been excellent. The performance is superb and the interior quality is top-notch. Fuel economy is better than expected.`,
+            carVariantId: v.id,
+            authorId: buyerUser.id,
+          },
+        });
+      }
+
+      const existingExpert = await prisma.review.findFirst({
+        where: { authorId: adminUser.id, carVariantId: v.id, type: "EXPERT" },
+      });
+      if (!existingExpert) {
+        await prisma.review.create({
+          data: {
+            type: "EXPERT",
+            rating: 5,
+            title: `${v.name}: A class leader`,
+            content: `The BMW ${v.name} sets the standard in its segment. Exceptional driving dynamics, refined powertrain, and a premium interior make this a compelling choice. Our pick of the range.`,
+            carVariantId: v.id,
+            authorId: adminUser.id,
+          },
+        });
+      }
+    }
+  }
+
   console.log(
-    "Seed complete: 20 brands, 20 models (60 variants), and test users (admin@example.com, buyer@example.com / password123).",
+    "Seed complete: 20 brands, 20 models (60 variants), 2 dealers, 4 upcoming cars, 4 articles, reviews, and test users.",
   );
 }
 

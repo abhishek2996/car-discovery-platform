@@ -125,3 +125,94 @@ export async function getCarModelBySlug(brandSlug: string, modelSlug: string) {
     },
   });
 }
+
+export async function getCarModelWithDetails(brandSlug: string, modelSlug: string) {
+  return prisma.carModel.findFirst({
+    where: {
+      slug: modelSlug,
+      brand: { slug: brandSlug },
+    },
+    include: {
+      brand: true,
+      variants: {
+        orderBy: { exShowroomPrice: "asc" },
+        include: {
+          reviews: {
+            where: { type: "USER" },
+            orderBy: { createdAt: "desc" },
+            take: 10,
+            include: { author: { select: { id: true, name: true, image: true } } },
+          },
+          _count: { select: { reviews: true } },
+        },
+      },
+    },
+  });
+}
+
+export async function getExpertReviewsForModel(modelId: string) {
+  return prisma.review.findMany({
+    where: {
+      carVariant: { modelId },
+      type: "EXPERT",
+    },
+    include: {
+      author: { select: { id: true, name: true, image: true } },
+      carVariant: { select: { id: true, name: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
+}
+
+export async function getSimilarCars(modelId: string, bodyType: string | null, segment: string | null) {
+  const where: Prisma.CarModelWhereInput = {
+    id: { not: modelId },
+    OR: [],
+  };
+
+  if (bodyType) (where.OR as Prisma.CarModelWhereInput[]).push({ bodyType: bodyType as BodyType });
+  if (segment) (where.OR as Prisma.CarModelWhereInput[]).push({ segment });
+
+  if (!(where.OR as Prisma.CarModelWhereInput[]).length) {
+    delete where.OR;
+  }
+
+  return prisma.carModel.findMany({
+    where,
+    include: {
+      brand: true,
+      variants: {
+        take: 1,
+        orderBy: { exShowroomPrice: "asc" },
+        select: { id: true, name: true, fuelType: true, transmission: true, seating: true },
+      },
+      _count: { select: { variants: true } },
+    },
+    take: 6,
+  });
+}
+
+export async function getVariantsForComparison(variantIds: string[]) {
+  return prisma.carVariant.findMany({
+    where: { id: { in: variantIds } },
+    include: {
+      model: {
+        include: { brand: true },
+      },
+    },
+  });
+}
+
+export async function getAllModelsForComparison() {
+  return prisma.carModel.findMany({
+    include: {
+      brand: true,
+      variants: {
+        orderBy: { exShowroomPrice: "asc" },
+        select: { id: true, name: true, exShowroomPrice: true },
+      },
+    },
+    orderBy: [{ brand: { name: "asc" } }, { name: "asc" }],
+  });
+}
