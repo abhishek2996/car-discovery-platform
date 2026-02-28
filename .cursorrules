@@ -124,73 +124,73 @@
     - [X] View saved comparisons / saved cars (if implemented)
     - [X] Manage profile and communication preferences
 
-- [ ] Phase 4 – Dealer dashboard
-  - [ ] Dealer onboarding & access
-    - [ ] Dealer signup request flow (public entry) mapped to `Dealer` + `User` with `DEALER` role
-    - [ ] Admin approval gate before a dealer can access dashboard features
-    - [ ] Dealer-only layout (`/dealer`) with sidebar, top bar, and responsive shell
-  - [ ] Inventory management
-    - [ ] Inventory list view for new car variants the dealer sells
-      - [ ] Table with search, sort, filters, pagination
-      - [ ] Columns: car, variant, on-road price, stock, visibility, offers, last updated
-    - [ ] Add/edit inventory item flow
-      - [ ] Link inventory to existing `CarVariant`
-      - [ ] Configure display price, stock, color availability, visibility
+- [X] Phase 4 – Dealer dashboard
+  - [X] Dealer onboarding & access
+    - [X] Dealer signup request flow (public entry) mapped to `Dealer` + `User` with `DEALER` role
+    - [X] Admin approval gate before a dealer can access dashboard features
+    - [X] Dealer-only layout (`/dealer`) with sidebar, top bar, and responsive shell
+  - [X] Inventory management
+    - [X] Inventory list view for new car variants the dealer sells
+      - [X] Table with search, sort, filters, pagination
+      - [X] Columns: car, variant, on-road price, stock, visibility, offers, last updated
+    - [X] Add/edit inventory item flow
+      - [X] Link inventory to existing `CarVariant`
+      - [X] Configure display price, stock, color availability, visibility
       - [ ] Upload photos via Uploadthing
-      - [ ] Validation via Zod + optimistic UI with Zustand
-  - [ ] Lead & enquiry management
-    - [ ] Leads list (tabbed by status: new, in-progress, completed, dropped)
-      - [ ] Table with key fields (buyer, car, source, created at, status, owner)
-      - [ ] Quick filters (lead source, car, time range)
-    - [ ] Lead detail page
-      - [ ] Timeline of activities and status changes
+      - [X] Validation via Zod + optimistic UI with Zustand
+  - [X] Lead & enquiry management
+    - [X] Leads list (tabbed by status: new, in-progress, completed, dropped)
+      - [X] Table with key fields (buyer, car, source, created at, status, owner)
+      - [X] Quick filters (lead source, car, time range)
+    - [X] Lead detail page
+      - [X] Timeline of activities and status changes
       - [ ] Notes, next follow-up date, internal tags
-    - [ ] Status updates & notifications
-      - [ ] Actions: mark contacted, schedule test drive, mark completed, mark lost
+    - [X] Status updates & notifications
+      - [X] Actions: mark contacted, schedule test drive, mark completed, mark lost
       - [ ] Resend notifications to buyer on key status changes (e.g., test drive confirmed)
-  - [ ] Test drive scheduling
-    - [ ] Calendar view of booked test drives for each showroom
-    - [ ] Integration with `TestDriveSlot` entries (create/update/cancel)
+  - [X] Test drive scheduling
+    - [X] Calendar view of booked test drives for each showroom
+    - [X] Integration with `TestDriveSlot` entries (create/update/cancel)
     - [ ] Buyer-facing reschedule/cancel hooks (simple, via link in email or dashboard)
-  - [ ] Offer management
-    - [ ] CRUD interface for dealer-specific offers on inventory items
-    - [ ] Validity periods, discount type/amount, highlight flags
+  - [X] Offer management
+    - [X] CRUD interface for dealer-specific offers on inventory items
+    - [X] Validity periods, discount type/amount, highlight flags
     - [ ] Surface offers on public catalog & car detail pages
-  - [ ] Dealer analytics (Recharts)
-    - [ ] Leads over time (line chart by day/week/month)
-    - [ ] Lead source breakdown (bar/pie)
-    - [ ] Conversion funnel from enquiry → test drive → marked as “won”
-    - [ ] Inventory performance table (views, leads, conversion) per variant
+  - [X] Dealer analytics (Recharts)
+    - [X] Leads over time (line chart by day/week/month)
+    - [X] Lead source breakdown (bar/pie)
+    - [X] Conversion funnel from enquiry → test drive → marked as “won”
+    - [X] Inventory performance table (views, leads, conversion) per variant
 
-- [ ] Phase 5 – Admin dashboard
-  - [ ] Admin access & layout
-    - [ ] Admin-only layout (`/admin`) with sidebar, top metrics header, and responsive grid
-    - [ ] Strict RBAC checks for all admin routes and actions
-  - [ ] Platform analytics (Recharts)
-    - [ ] Summary cards: total leads, active dealers, active buyers, active listings
-    - [ ] Leads over time and by source
-    - [ ] Popular brands, models, body types by views and leads
-    - [ ] City-wise heatmap or table for demand (views/leads by city)
-  - [ ] Car catalog management
-    - [ ] CRUD for `CarBrand`, `CarModel`, `CarVariant`, and shared spec taxonomies
+- [X] Phase 5 – Admin dashboard
+  - [X] Admin access & layout
+    - [X] Admin-only layout (`/admin`) with sidebar, top metrics header, and responsive grid
+    - [X] Strict RBAC checks for all admin routes and actions
+  - [X] Platform analytics (Recharts)
+    - [X] Summary cards: total leads, active dealers, active buyers, active listings
+    - [X] Leads over time and by source
+    - [X] Popular brands, models, body types by views and leads
+    - [X] City-wise heatmap or table for demand (views/leads by city)
+  - [X] Car catalog management
+    - [X] CRUD for `CarBrand`, `CarModel`, `CarVariant`, and shared spec taxonomies
     - [ ] Bulk import/update variants via CSV/JSON
     - [ ] Media management for official photos via Uploadthing
-  - [ ] Dealer management
-    - [ ] Dealer registrations review queue (approve/reject)
-    - [ ] Dealer directory with filters (status, city, brands)
-    - [ ] Ability to suspend/restore dealer access
-  - [ ] User & role management
-    - [ ] User list with search and filters
-    - [ ] View user history (leads, activity)
-    - [ ] Update roles (e.g., promote dealer staff, assign admin)
-  - [ ] Lead oversight
-    - [ ] Global lead list with filters (dealer, status, source, date range)
-    - [ ] Reassign leads between dealers or mark escalated
-  - [ ] Content & CMS-lite
-    - [ ] CRUD for news, expert reviews, and content articles
-    - [ ] Tagging, featured flags, and publish/unpublish
-    - [ ] SEO fields (slug, meta title/description, open graph image)
-    - [ ] Manage upcoming car records and trigger launch notifications
+  - [X] Dealer management
+    - [X] Dealer registrations review queue (approve/reject)
+    - [X] Dealer directory with filters (status, city, brands)
+    - [X] Ability to suspend/restore dealer access
+  - [X] User & role management
+    - [X] User list with search and filters
+    - [X] View user history (leads, activity)
+    - [X] Update roles (e.g., promote dealer staff, assign admin)
+  - [X] Lead oversight
+    - [X] Global lead list with filters (dealer, status, source, date range)
+    - [X] Reassign leads between dealers or mark escalated
+  - [X] Content & CMS-lite
+    - [X] CRUD for news, expert reviews, and content articles
+    - [X] Tagging, featured flags, and publish/unpublish
+    - [X] SEO fields (slug, meta title/description, open graph image)
+    - [X] Manage upcoming car records and trigger launch notifications
 
 - [ ] Phase 6 – Cross-cutting services, UX, and integrations
   - [ ] Validation & error handling

@@ -1,8 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "@/auth";
-import { AuthError } from "next-auth";
+import { LoginForm } from "@/components/public/login-form";
 
 export default async function LoginPage({
   searchParams,
@@ -27,57 +26,7 @@ export default async function LoginPage({
               : "Sign in failed. Try again."}
           </p>
         )}
-        <form
-          action={async (formData: FormData) => {
-            "use server";
-            try {
-              await signIn("credentials", {
-                email: formData.get("email") as string,
-                password: formData.get("password") as string,
-                redirectTo: callbackUrl,
-              });
-            } catch (error) {
-              if (error instanceof AuthError) {
-                redirect(`/login?error=${error.type}&callbackUrl=${encodeURIComponent(callbackUrl)}`);
-              }
-              throw error;
-            }
-          }}
-          className="space-y-4"
-        >
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground"
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-1">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full py-2 rounded-md bg-primary text-primary-foreground hover:opacity-90"
-          >
-            Sign in
-          </button>
-        </form>
+        <LoginForm callbackUrl={callbackUrl} />
         <p className="text-sm text-muted-foreground text-center">
           <Link href="/" className="underline hover:text-foreground">
             Back to home

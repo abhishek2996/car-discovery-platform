@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 import {
   Car,
   Menu,
@@ -12,6 +13,10 @@ import {
   Clock,
   Star,
   Store,
+  LogIn,
+  User,
+  LogOut,
+  LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +27,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { CitySelector } from "@/components/public/city-selector";
 import { cn } from "@/lib/utils";
 
@@ -110,6 +122,9 @@ export function SiteHeader() {
             </div>
           </form>
 
+          {/* Auth buttons */}
+          <AuthButtons />
+
           {/* City selector */}
           <div className="hidden sm:block">
             <CitySelector />
@@ -156,6 +171,7 @@ export function SiteHeader() {
                     </Link>
                   );
                 })}
+                <MobileAuthLinks onClose={() => setMobileOpen(false)} />
               </div>
             </SheetContent>
           </Sheet>
@@ -179,5 +195,115 @@ export function SiteHeader() {
         </div>
       )}
     </header>
+  );
+}
+
+function AuthButtons() {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return <div className="hidden h-8 w-8 animate-pulse rounded-full bg-muted md:block" />;
+  }
+
+  if (!session?.user) {
+    return (
+      <div className="hidden items-center gap-2 md:flex">
+        <Button asChild variant="ghost" size="sm">
+          <Link href="/login">
+            <LogIn className="mr-1.5 h-3.5 w-3.5" />
+            Sign in
+          </Link>
+        </Button>
+        <Button asChild size="sm">
+          <Link href="/dealer-signup">Become a Dealer</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  const user = session.user as { name?: string; email?: string; role?: string };
+  const dashboardHref =
+    user.role === "ADMIN" ? "/admin" : user.role === "DEALER" ? "/dealer" : "/my-activity";
+
+  return (
+    <div className="hidden md:block">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm" className="gap-2">
+            <User className="h-3.5 w-3.5" />
+            <span className="max-w-[100px] truncate">{user.name || user.email}</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem asChild>
+            <Link href={dashboardHref} className="flex items-center gap-2">
+              <LayoutDashboard className="h-3.5 w-3.5" />
+              {user.role === "ADMIN" ? "Admin Panel" : user.role === "DEALER" ? "Dealer Dashboard" : "My Activity"}
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => signOut({ callbackUrl: "/" })}
+            className="flex items-center gap-2 text-destructive focus:text-destructive"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
+function MobileAuthLinks({ onClose }: { onClose: () => void }) {
+  const { data: session } = useSession();
+
+  if (!session?.user) {
+    return (
+      <>
+        <div className="my-2 border-t" />
+        <Link
+          href="/login"
+          onClick={onClose}
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+        >
+          <LogIn className="size-4" />
+          Sign in
+        </Link>
+        <Link
+          href="/dealer-signup"
+          onClick={onClose}
+          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10"
+        >
+          <Store className="size-4" />
+          Become a Dealer
+        </Link>
+      </>
+    );
+  }
+
+  const user = session.user as { name?: string; email?: string; role?: string };
+  const dashboardHref =
+    user.role === "ADMIN" ? "/admin" : user.role === "DEALER" ? "/dealer" : "/my-activity";
+
+  return (
+    <>
+      <div className="my-2 border-t" />
+      <Link
+        href={dashboardHref}
+        onClick={onClose}
+        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+      >
+        <LayoutDashboard className="size-4" />
+        {user.role === "ADMIN" ? "Admin Panel" : user.role === "DEALER" ? "Dealer Dashboard" : "My Activity"}
+      </Link>
+      <button
+        onClick={() => { signOut({ callbackUrl: "/" }); onClose(); }}
+        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10"
+      >
+        <LogOut className="size-4" />
+        Sign out
+      </button>
+    </>
   );
 }
