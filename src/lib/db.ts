@@ -23,6 +23,6 @@ function getPrisma(): PrismaClient {
 /** Lazy Prisma client: only connects when first used. Avoids import-time throw when DATABASE_URL is missing. */
 export const prisma = new Proxy({} as PrismaClient, {
   get(_target, prop: string) {
-    return (getPrisma() as Record<string, unknown>)[prop];
+    return Reflect.get(getPrisma(), prop);
   },
 });
