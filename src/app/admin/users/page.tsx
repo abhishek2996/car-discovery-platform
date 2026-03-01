@@ -24,7 +24,10 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const roleParam = typeof sp.role === "string" ? sp.role : undefined;
   const searchParam = typeof sp.search === "string" ? sp.search : undefined;
-  const pageParam = typeof sp.page === "string" ? parseInt(sp.page, 10) : 1;
+  const pageParam =
+    typeof sp.page === "string"
+      ? Math.max(1, parseInt(sp.page, 10) || 1)
+      : 1;
 
   const { users, total, page, totalPages } = await getAdminUsers({
     role:

@@ -232,7 +232,11 @@ export async function getDealerLeads(
   ]);
 
   const counts = Object.fromEntries(
-    statusCounts.map((s) => [s.status, s._count]),
+    statusCounts.map((s) => {
+      const c = (s as { status: string; _count: number | { status?: number; _all?: number } })._count;
+      const n = typeof c === "number" ? c : (c?.status ?? (c as { _all?: number })?._all ?? 0);
+      return [s.status, n];
+    }),
   ) as Record<string, number>;
 
   return {
@@ -380,19 +384,24 @@ export async function getDealerAnalytics(dealerId: string) {
     }),
   ]);
 
+  const countFrom = (s: { _count: number | Record<string, number> }, key: string): number => {
+    const c = s._count;
+    return typeof c === "number" ? c : (c[key] ?? (c as { _all?: number })._all ?? 0);
+  };
+
   return {
     leadsOverTime,
     leadsBySource: leadsBySource.map((s) => ({
       source: s.source ?? "Unknown",
-      count: s._count,
+      count: countFrom(s, "source"),
     })),
     leadsByStatus: leadsByStatus.map((s) => ({
       status: s.status,
-      count: s._count,
+      count: countFrom(s, "status"),
     })),
     testDrivesByStatus: testDrivesByStatus.map((s) => ({
       status: s.status,
-      count: s._count,
+      count: countFrom(s, "status"),
     })),
     inventoryItems,
   };

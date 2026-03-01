@@ -282,12 +282,13 @@ export function ComparisonPage({ allModels, initialVariants }: ComparisonPagePro
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[180px] bg-muted/50">Spec</TableHead>
+                        <TableHead className="w-[180px] bg-muted/50 text-center">Spec</TableHead>
                         {selected.map((v) => (
-                          <TableHead key={v.id} className="min-w-[150px] bg-muted/50 text-center">
-                            <span className="text-xs text-muted-foreground">{v.model.brand.name}</span>
-                            <br />
-                            {v.name}
+                          <TableHead key={v.id} className="min-w-[150px] bg-muted/50">
+                            <div className="flex flex-col items-center justify-center text-center">
+                              <span className="font-medium">{v.model.brand.name} {v.model.name}</span>
+                              <span className="text-xs text-muted-foreground">{v.name}</span>
+                            </div>
                           </TableHead>
                         ))}
                       </TableRow>
@@ -297,7 +298,7 @@ export function ComparisonPage({ allModels, initialVariants }: ComparisonPagePro
                         const bestId = findBest(row, selected);
                         return (
                           <TableRow key={row.label}>
-                            <TableCell className="font-medium">{row.label}</TableCell>
+                            <TableCell className="font-medium text-center">{row.label}</TableCell>
                             {selected.map((v) => {
                               const val = row.getValue(v);
                               const formatted = row.format ? row.format(val) : String(val ?? "–");

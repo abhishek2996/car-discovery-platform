@@ -2,12 +2,7 @@
 
 import { prisma } from "@/lib/db";
 import { alertMeSchema } from "@/lib/validations/lead";
-
-export type ActionResult = {
-  success: boolean;
-  message: string;
-  errors?: Record<string, string[]>;
-};
+import type { ActionResult } from "@/lib/types";
 
 export async function subscribeToAlert(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   const raw = Object.fromEntries(formData.entries());

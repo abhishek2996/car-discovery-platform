@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { submitEnquiry, type ActionResult } from "@/lib/actions/leads";
+import { submitEnquiry } from "@/lib/actions/leads";
+import type { ActionResult } from "@/lib/types";
 
 interface EnquiryFormWrapperProps {
   dealerId: string;

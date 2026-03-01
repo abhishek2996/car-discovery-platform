@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import type { ActionResult } from "@/lib/actions/admin";
+import type { ActionResult } from "@/lib/types";
 
 interface AdminDeleteButtonProps {
   deleteAction: (id: string) => Promise<ActionResult>;

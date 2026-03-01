@@ -3,15 +3,8 @@ import { PageHeader } from "@/ui/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import Link from "next/link";
-import { UK_CITIES } from "@/lib/constants";
+import { CityFilterForm } from "@/components/admin/city-filter-form";
 import type { DealerStatus } from "@/generated/prisma";
 
 type tSearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -29,10 +22,30 @@ const STATUS_TABS: { value: string; label: string }[] = [
 
 export default async function AdminDealersPage({ searchParams }: PageProps) {
   const sp = await searchParams;
-  const statusParam = typeof sp.status === "string" ? sp.status : undefined;
-  const cityParam = typeof sp.city === "string" ? sp.city : undefined;
-  const searchParam = typeof sp.search === "string" ? sp.search : undefined;
-  const pageParam = typeof sp.page === "string" ? parseInt(sp.page, 10) : 1;
+  const statusParam =
+    typeof sp.status === "string"
+      ? sp.status
+      : Array.isArray(sp.status)
+        ? sp.status[0]
+        : undefined;
+  const cityParam =
+    typeof sp.city === "string"
+      ? sp.city
+      : Array.isArray(sp.city)
+        ? sp.city[0]
+        : undefined;
+  const searchParam =
+    typeof sp.search === "string"
+      ? sp.search
+      : Array.isArray(sp.search)
+        ? sp.search[0]
+        : undefined;
+  const pageParam =
+    typeof sp.page === "string"
+      ? Math.max(1, parseInt(sp.page, 10) || 1)
+      : Array.isArray(sp.page)
+        ? Math.max(1, parseInt(sp.page[0], 10) || 1)
+        : 1;
 
   const { dealers, total, page, totalPages, statusCounts } =
     await getAdminDealers({
@@ -78,7 +91,11 @@ export default async function AdminDealersPage({ searchParams }: PageProps) {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <form className="flex items-center gap-2">
+        <form
+          action="/admin/dealers"
+          method="get"
+          className="flex items-center gap-2"
+        >
           {statusParam && (
             <input type="hidden" name="status" value={statusParam} />
           )}
@@ -94,32 +111,11 @@ export default async function AdminDealersPage({ searchParams }: PageProps) {
           </Button>
         </form>
 
-        <form>
-          {statusParam && (
-            <input type="hidden" name="status" value={statusParam} />
-          )}
-          {searchParam && (
-            <input type="hidden" name="search" value={searchParam} />
-          )}
-          <Select name="city" defaultValue={cityParam ?? ""}>
-            <SelectTrigger className="w-44" size="sm">
-              <SelectValue placeholder="All cities" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">All cities</SelectItem>
-              {UK_CITIES.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <noscript>
-            <Button type="submit" size="sm" variant="secondary">
-              Filter
-            </Button>
-          </noscript>
-        </form>
+        <CityFilterForm
+          statusParam={statusParam}
+          searchParam={searchParam}
+          cityParam={cityParam}
+        />
       </div>
 
       {dealers.length === 0 ? (
@@ -219,7 +215,9 @@ function buildFilterUrl(
 ) {
   const params = new URLSearchParams();
   for (const [k, v] of Object.entries(sp)) {
-    if (typeof v === "string" && k !== "page" && k !== key) params.set(k, v);
+    if (k === "page" || k === key) continue;
+    const val = Array.isArray(v) ? v[0] : v;
+    if (typeof val === "string") params.set(k, val);
   }
   if (value) params.set(key, value);
   const qs = params.toString();
@@ -232,7 +230,9 @@ function buildPageUrl(
 ) {
   const params = new URLSearchParams();
   for (const [k, v] of Object.entries(sp)) {
-    if (typeof v === "string" && k !== "page") params.set(k, v);
+    if (k === "page") continue;
+    const val = Array.isArray(v) ? v[0] : v;
+    if (typeof val === "string") params.set(k, val);
   }
   params.set("page", String(page));
   return `/admin/dealers?${params.toString()}`;

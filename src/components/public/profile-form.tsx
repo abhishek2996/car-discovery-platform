@@ -4,7 +4,8 @@ import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { updateProfile, type ActionResult } from "@/lib/actions/profile";
+import { updateProfile } from "@/lib/actions/profile";
+import type { ActionResult } from "@/lib/types";
 
 interface ProfileFormProps {
   profile: {

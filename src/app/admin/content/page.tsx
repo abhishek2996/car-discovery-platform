@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/auth";
 import {
   getAdminArticles,
   getAdminUpcomingCars,
+  getAdminHeroSlides,
   type AdminContentFilters,
 } from "@/lib/data/admin-dashboard";
 import { PageHeader } from "@/ui/app-shell";
@@ -20,6 +21,7 @@ import {
   PublishToggleButton,
   DeleteArticleButton,
   DeleteUpcomingButton,
+  DeleteHeroSlideButton,
 } from "@/components/admin/content-actions";
 import type { ContentArticleType } from "@/generated/prisma";
 
@@ -49,12 +51,13 @@ export default async function AdminContentPage({
   searchParams: tSearchParams;
 }) {
   await requireAdmin();
-  const params = await searchParams;
+  const sp = await searchParams;
 
-  const tab = (params.tab as string) ?? "articles";
-  const typeFilter = params.type as string | undefined;
-  const search = params.search as string | undefined;
-  const page = Number(params.page ?? "1");
+  const tab = typeof sp.tab === "string" ? sp.tab : "articles";
+  const typeFilter = typeof sp.type === "string" ? sp.type : undefined;
+  const search = typeof sp.search === "string" ? sp.search : undefined;
+  const pageParam = sp.page;
+  const page = typeof pageParam === "string" ? Math.max(1, parseInt(pageParam, 10) || 1) : 1;
 
   const articleFilters: AdminContentFilters = { page };
   if (typeFilter && typeFilter !== "ALL") {
@@ -62,9 +65,10 @@ export default async function AdminContentPage({
   }
   if (search) articleFilters.search = search;
 
-  const [articlesData, upcomingCars] = await Promise.all([
+  const [articlesData, upcomingCars, heroSlides] = await Promise.all([
     getAdminArticles(articleFilters),
     getAdminUpcomingCars(search),
+    getAdminHeroSlides(),
   ]);
 
   return (
@@ -78,6 +82,7 @@ export default async function AdminContentPage({
         <TabsList>
           <TabsTrigger value="articles">Articles</TabsTrigger>
           <TabsTrigger value="upcoming">Upcoming Cars</TabsTrigger>
+          <TabsTrigger value="hero">Hero Slider</TabsTrigger>
         </TabsList>
 
         {/* ── Articles tab ─────────────────────────────────────── */}
@@ -301,6 +306,63 @@ export default async function AdminContentPage({
                           </Link>
                         </Button>
                         <DeleteUpcomingButton upcomingCarId={car.id} />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </TabsContent>
+
+        {/* ── Hero Slider tab ───────────────────────────────────── */}
+        <TabsContent value="hero" className="space-y-4">
+          <div className="flex items-center justify-end">
+            <Button asChild>
+              <Link href="/admin/content/hero/new">
+                <Plus className="mr-1 h-4 w-4" /> Add slide
+              </Link>
+            </Button>
+          </div>
+
+          <div className="overflow-x-auto rounded-lg border bg-card shadow-sm">
+            <table className="w-full text-sm">
+              <thead className="border-b bg-muted/50">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium">Title</th>
+                  <th className="px-4 py-3 text-left font-medium">Order</th>
+                  <th className="px-4 py-3 text-left font-medium">Status</th>
+                  <th className="px-4 py-3 text-right font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {heroSlides.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                      No hero slides. Add one to show on the home page.
+                    </td>
+                  </tr>
+                )}
+                {heroSlides.map((slide) => (
+                  <tr key={slide.id} className="hover:bg-muted/30">
+                    <td className="px-4 py-3 font-medium">{slide.title}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{slide.sortOrder}</td>
+                    <td className="px-4 py-3">
+                      {slide.active ? (
+                        <Badge className="bg-green-600 hover:bg-green-700">Active</Badge>
+                      ) : (
+                        <Badge variant="secondary">Inactive</Badge>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button asChild size="sm" variant="ghost">
+                          <Link href={`/admin/content/hero/${slide.id}/edit`}>
+                            <Pencil className="h-3.5 w-3.5" />
+                            <span className="sr-only md:not-sr-only md:ml-1">Edit</span>
+                          </Link>
+                        </Button>
+                        <DeleteHeroSlideButton slideId={slide.id} />
                       </div>
                     </td>
                   </tr>

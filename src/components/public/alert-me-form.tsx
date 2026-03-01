@@ -5,7 +5,8 @@ import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { subscribeToAlert, type ActionResult } from "@/lib/actions/alerts";
+import { subscribeToAlert } from "@/lib/actions/alerts";
+import type { ActionResult } from "@/lib/types";
 
 interface AlertMeFormProps {
   upcomingCarId: string;

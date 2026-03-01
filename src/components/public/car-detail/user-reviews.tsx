@@ -22,7 +22,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { submitReview, type ActionResult } from "@/lib/actions/leads";
+import { submitReview } from "@/lib/actions/leads";
+import type { ActionResult } from "@/lib/types";
 
 interface Review {
   id: string;

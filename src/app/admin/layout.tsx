@@ -4,9 +4,9 @@ import { AdminHeader } from "@/components/admin/admin-header";
 
 export default async function AdminLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   const user = await requireAdmin();
 
   return (

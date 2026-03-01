@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { BODY_TYPE_LABELS } from "@/lib/constants";
-import type { ActionResult } from "@/lib/actions/admin";
+import type { ActionResult } from "@/lib/types";
 
 interface Brand {
   id: string;
@@ -102,12 +102,12 @@ export function ModelForm({ action, brands, defaultValues }: ModelFormProps) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="bodyType">Body Type</Label>
-          <Select name="bodyType" defaultValue={defaultValues?.bodyType ?? ""}>
+          <Select name="bodyType" defaultValue={defaultValues?.bodyType || "__none__"}>
             <SelectTrigger>
               <SelectValue placeholder="Select body type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">None</SelectItem>
+              <SelectItem value="__none__">None</SelectItem>
               {Object.entries(BODY_TYPE_LABELS).map(([key, label]) => (
                 <SelectItem key={key} value={key}>
                   {label}

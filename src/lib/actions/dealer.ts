@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/db";
-import { requireDealer, assertDealerAccess } from "@/lib/auth";
+import { requireDealer } from "@/lib/auth";
 import {
   inventoryItemSchema,
   leadStatusSchema,
@@ -10,12 +10,12 @@ import {
   offerSchema,
 } from "@/lib/validations/dealer";
 import { revalidatePath } from "next/cache";
-
-export type ActionResult = {
-  success: boolean;
-  message: string;
-  errors?: Record<string, string[]>;
-};
+import {
+  sendEmail,
+  testDriveUpdateEmail,
+  newDealerSignupEmail,
+} from "@/lib/email";
+import type { ActionResult } from "@/lib/types";
 
 // ── Inventory ───────────────────────────────────────────────────
 
@@ -215,6 +215,24 @@ export async function updateTestDriveStatus(
     },
   });
 
+  const [buyer, variant, dealer] = await Promise.all([
+    prisma.user.findUnique({ where: { id: slot.buyerId }, select: { name: true, email: true } }),
+    prisma.carVariant.findUnique({
+      where: { id: slot.variantId },
+      select: { name: true, model: { select: { name: true, brand: { select: { name: true } } } } },
+    }),
+    prisma.dealer.findUnique({ where: { id: dealerId }, select: { name: true } }),
+  ]);
+
+  if (buyer?.email && variant && dealer) {
+    const carName = `${variant.model.brand.name} ${variant.model.name} ${variant.name}`;
+    sendEmail({
+      to: buyer.email,
+      subject: `Test drive update – ${carName}`,
+      html: testDriveUpdateEmail(buyer.name || "", carName, parsed.data.status, dealer.name),
+    }).catch(() => {});
+  }
+
   revalidatePath("/dealer/test-drives");
   return {
     success: true,
@@ -408,6 +426,20 @@ export async function dealerSignup(
       },
     },
   });
+
+  const adminUsers = await prisma.user.findMany({
+    where: { role: "ADMIN" },
+    select: { email: true },
+  });
+
+  const adminEmails = adminUsers.map((u) => u.email).filter(Boolean);
+  if (adminEmails.length > 0) {
+    sendEmail({
+      to: adminEmails,
+      subject: `New dealer application: ${parsed.data.name}`,
+      html: newDealerSignupEmail(parsed.data.name, parsed.data.city, parsed.data.contactEmail),
+    }).catch(() => {});
+  }
 
   return {
     success: true,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { ActionResult } from "@/lib/actions/admin";
+import { SingleImageUpload } from "@/components/ui/image-upload";
+import type { ActionResult } from "@/lib/types";
 import { toast } from "sonner";
 
 interface ArticleFormProps {
@@ -42,6 +43,7 @@ function slugify(text: string) {
 export function ArticleForm({ action, defaultValues }: ArticleFormProps) {
   const router = useRouter();
   const [state, formAction, isPending] = useActionState(action, null);
+  const [heroUrl, setHeroUrl] = useState(defaultValues?.heroMediaUrl ?? "");
 
   useEffect(() => {
     if (state?.success) {
@@ -130,14 +132,14 @@ export function ArticleForm({ action, defaultValues }: ArticleFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="heroMediaUrl">Hero Image URL</Label>
-        <Input
-          id="heroMediaUrl"
-          name="heroMediaUrl"
-          type="url"
-          placeholder="https://example.com/image.jpg"
-          defaultValue={defaultValues?.heroMediaUrl ?? ""}
+        <Label>Hero Image</Label>
+        <SingleImageUpload
+          endpoint="articleHero"
+          value={heroUrl}
+          onChange={setHeroUrl}
+          label=""
         />
+        <input type="hidden" name="heroMediaUrl" value={heroUrl} />
         {state?.errors?.heroMediaUrl && (
           <p className="text-xs text-destructive">{state.errors.heroMediaUrl[0]}</p>
         )}

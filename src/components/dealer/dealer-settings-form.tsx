@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updateDealerSettings } from "@/lib/actions/dealer";
-import type { ActionResult } from "@/lib/actions/dealer";
+import type { ActionResult } from "@/lib/types";
 import { UK_CITIES } from "@/lib/constants";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

@@ -36,6 +36,12 @@ export default async function EditVariantPage(props: PageProps) {
           torque: variant.torque,
           mileage: variant.mileage,
           seating: variant.seating,
+          length: variant.length,
+          width: variant.width,
+          height: variant.height,
+          wheelbase: variant.wheelbase,
+          bootCapacity: variant.bootCapacity,
+          fuelTank: variant.fuelTank,
           exShowroomPrice: variant.exShowroomPrice != null ? Number(variant.exShowroomPrice) : null,
         }}
       />

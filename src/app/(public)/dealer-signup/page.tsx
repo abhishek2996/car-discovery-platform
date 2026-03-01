@@ -2,9 +2,9 @@ import { prisma } from "@/lib/db";
 import { DealerSignupForm } from "@/components/public/dealer-signup-form";
 
 export const metadata = {
-  title: "Become a Dealer Partner | Car Discovery",
+  title: "Become a Dealer Partner | CarDiscovery",
   description:
-    "Register your dealership on Car Discovery and reach thousands of car buyers across the UK.",
+    "Register your dealership on CarDiscovery and reach thousands of car buyers across the UK.",
 };
 
 export default async function DealerSignupPage() {
@@ -14,7 +14,7 @@ export default async function DealerSignupPage() {
   });
 
   return (
-    <div className="mx-auto max-w-2xl py-8">
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold tracking-tight">
           Become a Dealer Partner

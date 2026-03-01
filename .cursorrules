@@ -192,20 +192,20 @@
     - [X] SEO fields (slug, meta title/description, open graph image)
     - [X] Manage upcoming car records and trigger launch notifications
 
-- [ ] Phase 6 – Cross-cutting services, UX, and integrations
-  - [ ] Validation & error handling
-    - [ ] Centralized Zod schemas for forms (enquiry, test drive, dealer onboarding, inventory, content)
-    - [ ] Consistent error surfaces using Shadcn components (toasts, inline errors)
-  - [ ] State management & UX polish
-    - [ ] Use Zustand for shared dashboard states (filters, selected entities, wizards)
-    - [ ] Loading skeletons, optimistic updates, and empty states for all major lists
-  - [ ] Email workflows with Resend
-    - [ ] Buyer emails: enquiry confirmation, test drive confirmation/update, upcoming car alerts
-    - [ ] Dealer emails: new lead notification, test drive booking details
-    - [ ] Admin emails: new dealer signup, critical system alerts
-  - [ ] File uploads with Uploadthing
-    - [ ] Car images, dealer showroom media, article hero images
-    - [ ] Safe file type/size validation and cleanup strategy
+- [X] Phase 6 – Cross-cutting services, UX, and integrations
+  - [X] Validation & error handling
+    - [X] Centralized Zod schemas for forms (enquiry, test drive, dealer onboarding, inventory, content)
+    - [X] Consistent error surfaces using Shadcn components (toasts, inline errors)
+  - [X] State management & UX polish
+    - [X] Use Zustand for shared dashboard states (filters, selected entities, wizards)
+    - [X] Loading skeletons, optimistic updates, and empty states for all major lists
+  - [X] Email workflows with Resend
+    - [X] Buyer emails: enquiry confirmation, test drive confirmation/update, upcoming car alerts
+    - [X] Dealer emails: new lead notification, test drive booking details
+    - [X] Admin emails: new dealer signup, critical system alerts
+  - [X] File uploads with Uploadthing
+    - [X] Car images, dealer showroom media, article hero images
+    - [X] Safe file type/size validation and cleanup strategy
 
 - [ ] Phase 7 – Testing, performance, and deployment
   - [ ] Automated testing

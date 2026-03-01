@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,10 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { addInventoryItem, updateInventoryItem } from "@/lib/actions/dealer";
-import type { ActionResult } from "@/lib/actions/dealer";
+import type { ActionResult } from "@/lib/types";
 import { toast } from "sonner";
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 interface Variant {
@@ -41,6 +41,14 @@ interface InventoryFormProps {
 export function InventoryForm({ variants, defaultValues }: InventoryFormProps) {
   const router = useRouter();
   const isEdit = !!defaultValues;
+  const [imageUrls, setImageUrls] = useState<string[]>(() => {
+    if (!defaultValues?.imageUrls) return [];
+    try {
+      return JSON.parse(defaultValues.imageUrls);
+    } catch {
+      return [];
+    }
+  });
 
   const action = isEdit
     ? updateInventoryItem.bind(null, defaultValues.id)
@@ -155,6 +163,17 @@ export function InventoryForm({ variants, defaultValues }: InventoryFormProps) {
           rows={3}
           defaultValue={defaultValues?.offers ?? ""}
         />
+      </div>
+
+      <div className="space-y-2">
+        <ImageUpload
+          endpoint="carImage"
+          value={imageUrls}
+          onChange={setImageUrls}
+          maxFiles={10}
+          label="Vehicle Photos"
+        />
+        <input type="hidden" name="imageUrls" value={JSON.stringify(imageUrls)} />
       </div>
 
       <div className="flex items-center gap-3">

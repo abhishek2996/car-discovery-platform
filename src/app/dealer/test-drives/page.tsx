@@ -33,7 +33,10 @@ export default async function TestDrivesPage({ searchParams }: PageProps) {
   const filters = {
     status: statusParam !== "all" && statusParam !== "upcoming" ? statusParam : undefined,
     upcoming: statusParam === "upcoming",
-    page: typeof sp.page === "string" ? parseInt(sp.page, 10) : 1,
+    page:
+      typeof sp.page === "string"
+        ? Math.max(1, parseInt(sp.page, 10) || 1)
+        : 1,
   };
 
   const { slots, total, page, totalPages } = await getDealerTestDrives(

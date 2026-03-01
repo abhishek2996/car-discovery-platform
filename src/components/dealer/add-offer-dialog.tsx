@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createOffer } from "@/lib/actions/dealer";
-import type { ActionResult } from "@/lib/actions/dealer";
+import type { ActionResult } from "@/lib/types";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect } from "react";

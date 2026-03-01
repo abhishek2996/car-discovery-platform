@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { ActionResult } from "@/lib/actions/admin";
+import type { ActionResult } from "@/lib/types";
 import { toast } from "sonner";
 
 interface Brand {

@@ -17,9 +17,17 @@ import {
   User,
   LogOut,
   LayoutDashboard,
+  Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -59,8 +67,8 @@ function NavLink({
     <Link
       href={href}
       className={cn(
-        "text-sm font-medium transition-colors hover:text-primary",
-        active ? "text-primary" : "text-muted-foreground",
+        "px-4 py-3 text-sm font-medium transition-colors hover:text-primary border-b-2 border-transparent hover:border-primary/50",
+        active ? "text-primary border-primary" : "text-muted-foreground",
       )}
     >
       {label}
@@ -75,70 +83,66 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
-        <Link href="/" className="mr-2 flex items-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
-            <Car className="size-4 text-primary-foreground" />
+      {/* Top row: logo, search, actions */}
+      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
+        <Link href="/" className="flex shrink-0 items-center gap-2">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-primary">
+            <Car className="size-5 text-primary-foreground" />
           </div>
-          <span className="hidden text-lg font-bold tracking-tight sm:inline-block">
-            CarDiscovery
-          </span>
+          <div className="hidden sm:block">
+            <span className="block text-lg font-bold tracking-tight">CarDiscovery</span>
+            <span className="block text-[10px] text-muted-foreground leading-tight">New cars in the UK</span>
+          </div>
+          <span className="text-lg font-bold tracking-tight sm:hidden">CarDiscovery</span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden items-center gap-6 md:flex">
-          {NAV_LINKS.map((link) => (
-            <NavLink
-              key={link.href}
-              href={link.href}
-              label={link.label}
-              active={pathname === link.href || pathname.startsWith(link.href + "/")}
-            />
-          ))}
-        </nav>
+        {/* Center search: All dropdown + input */}
+        <form action="/new-cars" method="get" className="hidden flex-1 md:flex md:max-w-xl md:items-center md:justify-center">
+          <div className="flex w-full overflow-hidden rounded-lg border bg-muted/30">
+            <Select name="scope" defaultValue="all">
+              <SelectTrigger className="h-9 w-20 shrink-0 border-0 bg-transparent shadow-none focus:ring-0">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="new-cars">New Cars</SelectItem>
+                <SelectItem value="brands">Brands</SelectItem>
+                <SelectItem value="reviews">Reviews</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                name="q"
+                placeholder="Search or ask a question"
+                className="h-9 border-0 bg-transparent pl-9 pr-4 focus-visible:ring-0"
+              />
+            </div>
+          </div>
+        </form>
 
-        <div className="ml-auto flex items-center gap-2">
-          {/* Search toggle (mobile) */}
+        <div className="ml-auto flex items-center gap-1 sm:gap-2">
           <Button
             variant="ghost"
-            size="icon-sm"
+            size="icon"
             className="md:hidden"
             onClick={() => setSearchOpen(!searchOpen)}
             aria-label="Toggle search"
           >
             {searchOpen ? <X className="size-4" /> : <Search className="size-4" />}
           </Button>
-
-          {/* Desktop search */}
-          <form action="/new-cars" method="get" className="hidden md:block">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                name="q"
-                placeholder="Search cars..."
-                className="h-8 w-56 pl-8 text-sm lg:w-64"
-              />
-            </div>
-          </form>
-
-          {/* Auth buttons */}
+          <Button variant="ghost" size="icon" className="hidden sm:flex" asChild>
+            <Link href="/my-activity" aria-label="Saved">
+              <Heart className="size-4" />
+            </Link>
+          </Button>
           <AuthButtons />
-
-          {/* City selector */}
           <div className="hidden sm:block">
             <CitySelector />
           </div>
-
-          {/* Mobile menu */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="md:hidden"
-                aria-label="Open menu"
-              >
+              <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
                 <Menu className="size-4" />
               </Button>
             </SheetTrigger>
@@ -147,13 +151,20 @@ export function SiteHeader() {
                 <SheetTitle className="text-left">Menu</SheetTitle>
               </SheetHeader>
               <div className="mt-6 flex flex-col gap-1">
+                <div className="mb-4 border-b pb-4">
+                  <form action="/new-cars" method="get">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input name="q" placeholder="Search cars..." className="pl-8" />
+                    </div>
+                  </form>
+                </div>
                 <div className="mb-4 px-2">
                   <CitySelector />
                 </div>
                 {NAV_LINKS.map((link) => {
                   const Icon = link.icon;
-                  const active =
-                    pathname === link.href || pathname.startsWith(link.href + "/");
+                  const active = pathname === link.href || pathname.startsWith(link.href + "/");
                   return (
                     <Link
                       key={link.href}
@@ -178,18 +189,29 @@ export function SiteHeader() {
         </div>
       </div>
 
+      {/* Second row: main nav */}
+      <div className="border-t border-border/50">
+        <div className="mx-auto flex max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+          <nav className="hidden items-center gap-1 md:flex">
+            {NAV_LINKS.map((link) => (
+              <NavLink
+                key={link.href}
+                href={link.href}
+                label={link.label}
+                active={pathname === link.href || pathname.startsWith(link.href + "/")}
+              />
+            ))}
+          </nav>
+        </div>
+      </div>
+
       {/* Mobile search bar */}
       {searchOpen && (
         <div className="border-t px-4 py-2 md:hidden">
           <form action="/new-cars" method="get">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                name="q"
-                placeholder="Search by brand, model..."
-                className="pl-8 text-sm"
-                autoFocus
-              />
+              <Input name="q" placeholder="Search or ask a question" className="pl-8 text-sm" autoFocus />
             </div>
           </form>
         </div>
@@ -207,14 +229,11 @@ function AuthButtons() {
 
   if (!session?.user) {
     return (
-      <div className="hidden items-center gap-2 md:flex">
-        <Button asChild variant="ghost" size="sm">
-          <Link href="/login">
-            <LogIn className="mr-1.5 h-3.5 w-3.5" />
-            Sign in
-          </Link>
+      <div className="hidden items-center gap-3 md:flex">
+        <Button asChild variant="ghost" size="sm" className="text-muted-foreground font-normal">
+          <Link href="/login">Login / Register</Link>
         </Button>
-        <Button asChild size="sm">
+        <Button asChild size="sm" className="bg-orange-500 hover:bg-orange-600">
           <Link href="/dealer-signup">Become a Dealer</Link>
         </Button>
       </div>

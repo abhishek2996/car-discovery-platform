@@ -168,27 +168,38 @@ export async function getAdminDealers(filters: AdminDealerFilters = {}) {
     ];
   }
 
-  const [dealers, total, statusCounts] = await Promise.all([
-    prisma.dealer.findMany({
-      where,
-      include: {
-        user: { select: { email: true, name: true } },
-        _count: { select: { leads: true, inventoryItems: true } },
-        dealerBrands: { include: { brand: { select: { name: true } } } },
-      },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * ADMIN_PAGE_SIZE,
-      take: ADMIN_PAGE_SIZE,
-    }),
-    prisma.dealer.count({ where }),
-    prisma.dealer.groupBy({ by: ["status"], _count: true }),
-  ]);
+  const [dealers, total, countPending, countActive, countSuspended] =
+    await Promise.all([
+      prisma.dealer.findMany({
+        where,
+        include: {
+          user: { select: { email: true, name: true } },
+          _count: { select: { leads: true, inventoryItems: true } },
+          dealerBrands: { include: { brand: { select: { name: true } } } },
+        },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * ADMIN_PAGE_SIZE,
+        take: ADMIN_PAGE_SIZE,
+      }),
+      prisma.dealer.count({ where }),
+      prisma.dealer.count({ where: { ...where, status: "PENDING" } }),
+      prisma.dealer.count({ where: { ...where, status: "ACTIVE" } }),
+      prisma.dealer.count({ where: { ...where, status: "SUSPENDED" } }),
+    ]);
 
-  const counts = Object.fromEntries(
-    statusCounts.map((s) => [s.status, s._count]),
-  ) as Record<string, number>;
+  const statusCounts: Record<string, number> = {
+    PENDING: countPending,
+    ACTIVE: countActive,
+    SUSPENDED: countSuspended,
+  };
 
-  return { dealers, total, page, totalPages: Math.ceil(total / ADMIN_PAGE_SIZE), statusCounts: counts };
+  return {
+    dealers,
+    total,
+    page,
+    totalPages: Math.ceil(total / ADMIN_PAGE_SIZE),
+    statusCounts,
+  };
 }
 
 export async function getAdminDealer(id: string) {
@@ -344,4 +355,35 @@ export async function getAllDealersForSelect() {
     select: { id: true, name: true, city: true },
     orderBy: { name: "asc" },
   });
+}
+
+// ── Hero slides (home page) ────────────────────────────────────
+
+export async function getActiveHeroSlides() {
+  try {
+    return await prisma.heroSlide.findMany({
+      where: { active: true },
+      orderBy: { sortOrder: "asc" },
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function getAdminHeroSlides() {
+  try {
+    return await prisma.heroSlide.findMany({
+      orderBy: { sortOrder: "asc" },
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function getAdminHeroSlide(id: string) {
+  try {
+    return await prisma.heroSlide.findUnique({ where: { id } });
+  } catch {
+    return null;
+  }
 }

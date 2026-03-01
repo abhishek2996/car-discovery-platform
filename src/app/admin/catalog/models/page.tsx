@@ -17,11 +17,7 @@ import Link from "next/link";
 import { Plus, Pencil, Layers } from "lucide-react";
 import { formatPrice, BODY_TYPE_LABELS } from "@/lib/constants";
 
-type tSearchParams = Promise<{
-  search?: string;
-  brandId?: string;
-  page?: string;
-}>;
+type tSearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 interface PageProps {
   searchParams: tSearchParams;
@@ -29,16 +25,18 @@ interface PageProps {
 
 export default async function AdminModelsPage(props: PageProps) {
   const sp = await props.searchParams;
-  const page = Number(sp.page) || 1;
+  const search = typeof sp.search === "string" ? sp.search : undefined;
+  const brandId = typeof sp.brandId === "string" ? sp.brandId : undefined;
+  const page = typeof sp.page === "string" ? Math.max(1, parseInt(sp.page, 10) || 1) : 1;
 
   const [{ models, total, totalPages }, brands] = await Promise.all([
-    getAdminModels({ search: sp.search, brandId: sp.brandId, page }),
+    getAdminModels({ search, brandId, page }),
     getAdminBrands(),
   ]);
 
   function buildUrl(overrides: Record<string, string | undefined>) {
     const params = new URLSearchParams();
-    const merged = { search: sp.search, brandId: sp.brandId, page: String(page), ...overrides };
+    const merged = { search, brandId, page: String(page), ...overrides };
     for (const [k, v] of Object.entries(merged)) {
       if (v && v !== "" && v !== "all") params.set(k, v);
     }
@@ -68,12 +66,12 @@ export default async function AdminModelsPage(props: PageProps) {
           <Input
             name="search"
             placeholder="Search models…"
-            defaultValue={sp.search ?? ""}
+            defaultValue={search ?? ""}
             className="max-w-xs"
           />
           <select
             name="brandId"
-            defaultValue={sp.brandId ?? ""}
+            defaultValue={brandId ?? ""}
             className="h-9 rounded-md border bg-background px-3 text-sm"
           >
             <option value="">All Brands</option>
@@ -86,7 +84,7 @@ export default async function AdminModelsPage(props: PageProps) {
           <Button type="submit" variant="secondary" size="sm">
             Filter
           </Button>
-          {(sp.search || sp.brandId) && (
+          {(search || brandId) && (
             <Button variant="ghost" size="sm" asChild>
               <Link href="/admin/catalog/models">Clear</Link>
             </Button>

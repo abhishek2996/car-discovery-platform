@@ -7,13 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   LeadStatusSelect,
   ReassignLeadDialog,
 } from "@/components/admin/lead-actions";
@@ -40,7 +33,10 @@ export default async function AdminLeadsPage({ searchParams }: PageProps) {
   const statusParam = typeof sp.status === "string" ? sp.status : undefined;
   const dealerParam = typeof sp.dealer === "string" ? sp.dealer : undefined;
   const searchParam = typeof sp.search === "string" ? sp.search : undefined;
-  const pageParam = typeof sp.page === "string" ? parseInt(sp.page, 10) : 1;
+  const pageParam =
+    typeof sp.page === "string"
+      ? Math.max(1, parseInt(sp.page, 10) || 1)
+      : 1;
 
   const [{ leads, total, page, totalPages }, allDealers] = await Promise.all([
     getAdminLeads({
@@ -88,7 +84,11 @@ export default async function AdminLeadsPage({ searchParams }: PageProps) {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <form className="flex items-center gap-2">
+        <form
+          action="/admin/leads"
+          method="get"
+          className="flex items-center gap-2"
+        >
           {statusParam && (
             <input type="hidden" name="status" value={statusParam} />
           )}
@@ -106,32 +106,29 @@ export default async function AdminLeadsPage({ searchParams }: PageProps) {
           </Button>
         </form>
 
-        <form>
+        <form action="/admin/leads" method="get" className="flex items-center gap-2">
           {statusParam && (
             <input type="hidden" name="status" value={statusParam} />
           )}
           {searchParam && (
             <input type="hidden" name="search" value={searchParam} />
           )}
-          <Select name="dealer" defaultValue={dealerParam ?? ""}>
-            <SelectTrigger className="w-52" size="sm">
-              <SelectValue placeholder="All dealers" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">All dealers</SelectItem>
-              {allDealers.map((d) => (
-                <SelectItem key={d.id} value={d.id}>
-                  {d.name}
-                  {d.city ? ` (${d.city})` : ""}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <noscript>
-            <Button type="submit" size="sm" variant="secondary">
-              Filter
-            </Button>
-          </noscript>
+          <select
+            name="dealer"
+            defaultValue={dealerParam ?? ""}
+            className="h-8 rounded-md border bg-background px-3 text-sm"
+          >
+            <option value="">All dealers</option>
+            {allDealers.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+                {d.city ? ` (${d.city})` : ""}
+              </option>
+            ))}
+          </select>
+          <Button type="submit" size="sm" variant="secondary">
+            Filter
+          </Button>
         </form>
       </div>
 

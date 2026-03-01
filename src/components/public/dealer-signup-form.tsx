@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { dealerSignup } from "@/lib/actions/dealer";
-import type { ActionResult } from "@/lib/actions/dealer";
+import type { ActionResult } from "@/lib/types";
 import { UK_CITIES } from "@/lib/constants";
 import { toast } from "sonner";
 import { CheckCircle } from "lucide-react";

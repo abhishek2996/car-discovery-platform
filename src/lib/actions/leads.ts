@@ -3,12 +3,14 @@
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { enquiryFormSchema, testDriveFormSchema, reviewFormSchema } from "@/lib/validations/lead";
-
-export type ActionResult = {
-  success: boolean;
-  message: string;
-  errors?: Record<string, string[]>;
-};
+import {
+  sendEmail,
+  enquiryConfirmationEmail,
+  testDriveConfirmationEmail,
+  newLeadNotificationEmail,
+  testDriveBookingEmail,
+} from "@/lib/email";
+import type { ActionResult } from "@/lib/types";
 
 export async function submitEnquiry(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   const session = await getSession();
@@ -41,6 +43,43 @@ export async function submitEnquiry(_prev: ActionResult | null, formData: FormDa
       message,
     },
   });
+
+  const [dealer, buyer, carModel] = await Promise.all([
+    prisma.dealer.findUnique({ where: { id: dealerId }, select: { name: true, email: true } }),
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { name: true, email: true } }),
+    carModelId
+      ? prisma.carModel.findUnique({
+          where: { id: carModelId },
+          select: { name: true, brand: { select: { name: true } } },
+        })
+      : null,
+  ]);
+
+  const carName = carModel ? `${carModel.brand.name} ${carModel.name}` : undefined;
+
+  if (buyer?.email) {
+    sendEmail({
+      to: buyer.email,
+      subject: "Your enquiry has been received – CarDiscovery",
+      html: enquiryConfirmationEmail(buyer.name || "", dealer?.name || "the dealer", carName),
+    }).catch(() => {});
+  }
+
+  if (dealer?.email) {
+    sendEmail({
+      to: dealer.email,
+      subject: `New enquiry from ${buyer?.name || "a customer"}`,
+      html: newLeadNotificationEmail(
+        dealer.name,
+        buyer?.name || "",
+        buyer?.email || "",
+        "ENQUIRY",
+        carName,
+        message,
+      ),
+      replyTo: buyer?.email,
+    }).catch(() => {});
+  }
 
   return { success: true, message: "Your enquiry has been submitted. The dealer will contact you soon." };
 }
@@ -89,6 +128,48 @@ export async function submitTestDriveRequest(_prev: ActionResult | null, formDat
       },
     }),
   ]);
+
+  const [dealer, buyer, variant] = await Promise.all([
+    prisma.dealer.findUnique({ where: { id: dealerId }, select: { name: true, email: true } }),
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { name: true, email: true } }),
+    prisma.carVariant.findUnique({
+      where: { id: variantId },
+      select: { name: true, model: { select: { name: true, brand: { select: { name: true } } } } },
+    }),
+  ]);
+
+  const carName = variant
+    ? `${variant.model.brand.name} ${variant.model.name} ${variant.name}`
+    : "your selected car";
+
+  if (buyer?.email) {
+    sendEmail({
+      to: buyer.email,
+      subject: "Test drive request received – CarDiscovery",
+      html: testDriveConfirmationEmail(
+        buyer.name || "",
+        dealer?.name || "the dealer",
+        carName,
+        preferredDate,
+        preferredTime,
+      ),
+    }).catch(() => {});
+  }
+
+  if (dealer?.email) {
+    sendEmail({
+      to: dealer.email,
+      subject: `New test drive request from ${buyer?.name || "a customer"}`,
+      html: testDriveBookingEmail(
+        dealer.name,
+        buyer?.name || "",
+        carName,
+        preferredDate,
+        preferredTime,
+      ),
+      replyTo: buyer?.email,
+    }).catch(() => {});
+  }
 
   return { success: true, message: "Your test drive request has been submitted. The dealer will confirm shortly." };
 }

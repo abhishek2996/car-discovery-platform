@@ -44,6 +44,15 @@ const INFO_LINKS = [
   { label: "Terms of Service", href: "/terms" },
 ];
 
+const NEW_CARS_LINKS = [
+  { label: "New Cars", href: "/new-cars" },
+  { label: "Compare Cars", href: "/compare" },
+  { label: "Upcoming Cars", href: "/upcoming" },
+  { label: "Reviews", href: "/reviews" },
+  { label: "Dealers", href: "/dealers" },
+  { label: "Brands", href: "/brands" },
+];
+
 function FooterSection({
   title,
   links,
@@ -74,7 +83,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t bg-muted/30">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-6">
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1 lg:col-span-1">
             <Link href="/" className="mb-4 flex items-center gap-2">
@@ -84,11 +93,12 @@ export function SiteFooter() {
               <span className="text-lg font-bold tracking-tight">CarDiscovery</span>
             </Link>
             <p className="mt-3 text-sm text-muted-foreground">
-              Your trusted companion for finding the perfect new car in the United
+              Your trusted companion for new car discovery in the United
               Kingdom. Compare prices, read reviews, and connect with dealers.
             </p>
           </div>
 
+          <FooterSection title="New Cars" links={NEW_CARS_LINKS} />
           <FooterSection title="Popular Brands" links={BRAND_LINKS} />
           <FooterSection title="Body Types" links={BODY_TYPE_LINKS} />
           <FooterSection title="Cars by City" links={CITY_LINKS} />

@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SingleImageUpload } from "@/components/ui/image-upload";
 import { toast } from "sonner";
-import type { ActionResult } from "@/lib/actions/admin";
+import type { ActionResult } from "@/lib/types";
 
 interface BrandFormProps {
   action: (prev: ActionResult | null, formData: FormData) => Promise<ActionResult>;
@@ -21,6 +22,7 @@ interface BrandFormProps {
 export function BrandForm({ action, defaultValues }: BrandFormProps) {
   const router = useRouter();
   const [state, formAction, isPending] = useActionState(action, null);
+  const [logoUrl, setLogoUrl] = useState(defaultValues?.logoUrl ?? "");
 
   useEffect(() => {
     if (state?.success) {
@@ -74,14 +76,14 @@ export function BrandForm({ action, defaultValues }: BrandFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="logoUrl">Logo URL</Label>
-        <Input
-          id="logoUrl"
-          name="logoUrl"
-          type="url"
-          placeholder="https://..."
-          defaultValue={defaultValues?.logoUrl ?? ""}
+        <Label>Brand Logo</Label>
+        <SingleImageUpload
+          endpoint="brandLogo"
+          value={logoUrl}
+          onChange={setLogoUrl}
+          label=""
         />
+        <input type="hidden" name="logoUrl" value={logoUrl} />
         {state?.errors?.logoUrl && (
           <p className="text-xs text-destructive">{state.errors.logoUrl[0]}</p>
         )}

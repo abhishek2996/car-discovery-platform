@@ -383,6 +383,21 @@ model ContentArticle {
   author User? @relation("ContentAuthor", fields: [authorId], references: [id], onDelete: SetNull)
 }
 
+// Home page hero slider (admin-managed)
+model HeroSlide {
+  id           String   @id @default(cuid())
+  title        String   // headline, e.g. "Get Your Dream Car"
+  subtitle     String?  @db.Text
+  benefitText  String?  @db.Text // e.g. "Get Benefits Up to £5,000*"
+  dealerName   String?
+  locationsJson String? @db.Text // JSON: [{ "name": "London", "phone": "..." }]
+  imageUrl     String?  // optional background image
+  sortOrder    Int      @default(0)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 // ============== Buyer UX (optional) ==============
 
 model SavedSearch {

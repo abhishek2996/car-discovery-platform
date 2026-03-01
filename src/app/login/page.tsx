@@ -6,17 +6,17 @@ import { LoginForm } from "@/components/public/login-form";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ callbackUrl?: string; error?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const session = await auth();
-  const params = await searchParams;
-  const callbackUrl = params.callbackUrl ?? "/";
-  const error = params.error;
+  const sp = await searchParams;
+  const callbackUrl = typeof sp.callbackUrl === "string" ? sp.callbackUrl : "/";
+  const error = typeof sp.error === "string" ? sp.error : undefined;
 
   if (session?.user) redirect(callbackUrl);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background text-foreground">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-foreground">
       <div className="w-full max-w-sm space-y-6">
         <h1 className="text-2xl font-semibold text-center">Sign in</h1>
         {error && (

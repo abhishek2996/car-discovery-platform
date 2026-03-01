@@ -11,14 +11,10 @@ import {
   leadReassignSchema,
   contentArticleSchema,
   upcomingCarSchema,
+  heroSlideSchema,
 } from "@/lib/validations/admin";
 import { revalidatePath } from "next/cache";
-
-export type ActionResult = {
-  success: boolean;
-  message: string;
-  errors?: Record<string, string[]>;
-};
+import type { ActionResult } from "@/lib/types";
 
 // ── Car Brand CRUD ──────────────────────────────────────────────
 
@@ -114,10 +110,30 @@ export async function deleteModel(id: string): Promise<ActionResult> {
 
 // ── Car Variant CRUD ────────────────────────────────────────────
 
+const variantDimensionsData = (p: {
+  length?: number | null;
+  width?: number | null;
+  height?: number | null;
+  wheelbase?: number | null;
+  bootCapacity?: number | null;
+  fuelTank?: number | null;
+  seating?: number | null;
+}) => ({
+  length: p.length ?? null,
+  width: p.width ?? null,
+  height: p.height ?? null,
+  wheelbase: p.wheelbase ?? null,
+  bootCapacity: p.bootCapacity ?? null,
+  fuelTank: p.fuelTank ?? null,
+  seating: p.seating ?? null,
+});
+
 export async function createVariant(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   await requireAdmin();
   const parsed = carVariantSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return { success: false, message: "Validation failed.", errors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
+
+  const dims = variantDimensionsData(parsed.data);
 
   await prisma.carVariant.create({
     data: {
@@ -130,10 +146,18 @@ export async function createVariant(_prev: ActionResult | null, formData: FormDa
       power: parsed.data.power || null,
       torque: parsed.data.torque || null,
       mileage: parsed.data.mileage || null,
-      seating: parsed.data.seating ?? null,
+      ...dims,
       exShowroomPrice: parsed.data.exShowroomPrice ?? null,
     },
   });
+
+  if (parsed.data.applyDimensionsToAllVariants) {
+    await prisma.carVariant.updateMany({
+      where: { modelId: parsed.data.modelId },
+      data: dims,
+    });
+  }
+
   revalidatePath("/admin/catalog");
   return { success: true, message: "Variant created." };
 }
@@ -142,6 +166,8 @@ export async function updateVariant(id: string, _prev: ActionResult | null, form
   await requireAdmin();
   const parsed = carVariantSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return { success: false, message: "Validation failed.", errors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
+
+  const dims = variantDimensionsData(parsed.data);
 
   await prisma.carVariant.update({
     where: { id },
@@ -155,10 +181,18 @@ export async function updateVariant(id: string, _prev: ActionResult | null, form
       power: parsed.data.power || null,
       torque: parsed.data.torque || null,
       mileage: parsed.data.mileage || null,
-      seating: parsed.data.seating ?? null,
+      ...dims,
       exShowroomPrice: parsed.data.exShowroomPrice ?? null,
     },
   });
+
+  if (parsed.data.applyDimensionsToAllVariants) {
+    await prisma.carVariant.updateMany({
+      where: { modelId: parsed.data.modelId },
+      data: dims,
+    });
+  }
+
   revalidatePath("/admin/catalog");
   return { success: true, message: "Variant updated." };
 }
@@ -340,4 +374,82 @@ export async function deleteUpcomingCar(id: string): Promise<ActionResult> {
   await prisma.upcomingCar.delete({ where: { id } });
   revalidatePath("/admin/content");
   return { success: true, message: "Upcoming car deleted." };
+}
+
+// ── Hero slides ──────────────────────────────────────────────────
+
+function parseLocationsJson(raw: string): string | null {
+  const s = raw?.trim();
+  if (!s) return null;
+  try {
+    const parsed = JSON.parse(s) as unknown;
+    if (Array.isArray(parsed)) return JSON.stringify(parsed);
+  } catch {
+    // Try "Name, Phone" per line
+    const lines = s.split(/\n/).map((l) => l.trim()).filter(Boolean);
+    const arr = lines.map((line) => {
+      const idx = line.lastIndexOf(",");
+      if (idx === -1) return { name: line, phone: "" };
+      return { name: line.slice(0, idx).trim(), phone: line.slice(idx + 1).trim() };
+    });
+    if (arr.length) return JSON.stringify(arr);
+  }
+  return null;
+}
+
+export async function createHeroSlide(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = heroSlideSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return { success: false, message: "Validation failed.", errors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
+
+  const locationsJson = parseLocationsJson(parsed.data.locationsJson ?? "");
+
+  await prisma.heroSlide.create({
+    data: {
+      title: parsed.data.title,
+      subtitle: parsed.data.subtitle || null,
+      benefitText: parsed.data.benefitText || null,
+      dealerName: parsed.data.dealerName || null,
+      locationsJson,
+      imageUrl: parsed.data.imageUrl || null,
+      sortOrder: parsed.data.sortOrder,
+      active: parsed.data.active,
+    },
+  });
+  revalidatePath("/admin/content");
+  revalidatePath("/");
+  return { success: true, message: "Hero slide created." };
+}
+
+export async function updateHeroSlide(id: string, _prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = heroSlideSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) return { success: false, message: "Validation failed.", errors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
+
+  const locationsJson = parseLocationsJson(parsed.data.locationsJson ?? "");
+
+  await prisma.heroSlide.update({
+    where: { id },
+    data: {
+      title: parsed.data.title,
+      subtitle: parsed.data.subtitle || null,
+      benefitText: parsed.data.benefitText || null,
+      dealerName: parsed.data.dealerName || null,
+      locationsJson,
+      imageUrl: parsed.data.imageUrl || null,
+      sortOrder: parsed.data.sortOrder,
+      active: parsed.data.active,
+    },
+  });
+  revalidatePath("/admin/content");
+  revalidatePath("/");
+  return { success: true, message: "Hero slide updated." };
+}
+
+export async function deleteHeroSlide(id: string): Promise<ActionResult> {
+  await requireAdmin();
+  await prisma.heroSlide.delete({ where: { id } });
+  revalidatePath("/admin/content");
+  revalidatePath("/");
+  return { success: true, message: "Hero slide deleted." };
 }

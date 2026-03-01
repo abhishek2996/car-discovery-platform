@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { LeadFiltersBar } from "@/components/dealer/lead-filters";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { LeadStatus } from "@/generated/prisma";
 
 type tSearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -35,7 +36,10 @@ export default async function LeadsPage({ searchParams }: PageProps) {
       : undefined,
     search: typeof sp.search === "string" ? sp.search : undefined,
     sort: typeof sp.sort === "string" ? sp.sort : undefined,
-    page: typeof sp.page === "string" ? parseInt(sp.page, 10) : 1,
+    page:
+      typeof sp.page === "string"
+        ? Math.max(1, parseInt(sp.page, 10) || 1)
+        : 1,
   };
 
   const { leads, total, page, totalPages, statusCounts } =
@@ -76,9 +80,12 @@ export default async function LeadsPage({ searchParams }: PageProps) {
       <LeadFiltersBar />
 
       {leads.length === 0 ? (
-        <p className="mt-8 text-center text-muted-foreground">
-          No leads found with the current filters.
-        </p>
+        <div className="mt-4">
+          <EmptyState
+            title="No leads found"
+            description="No leads match the current filters. Adjust your filters or wait for new enquiries from customers."
+          />
+        </div>
       ) : (
         <>
           <div className="mt-4 overflow-x-auto rounded-lg border">

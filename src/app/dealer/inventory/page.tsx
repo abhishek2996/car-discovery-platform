@@ -8,6 +8,7 @@ import Link from "next/link";
 import { formatPrice } from "@/lib/constants";
 import { InventoryFiltersBar } from "@/components/dealer/inventory-filters";
 import { DeleteInventoryButton } from "@/components/dealer/delete-inventory-button";
+import { EmptyState } from "@/components/ui/empty-state";
 
 type tParams = Promise<Record<string, never>>;
 type tSearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -25,7 +26,10 @@ export default async function InventoryPage({ searchParams }: PageProps) {
     stockStatus: typeof sp.stockStatus === "string" ? sp.stockStatus : undefined,
     visibility: typeof sp.visibility === "string" ? sp.visibility : undefined,
     sort: typeof sp.sort === "string" ? sp.sort : undefined,
-    page: typeof sp.page === "string" ? parseInt(sp.page, 10) : 1,
+    page:
+      typeof sp.page === "string"
+        ? Math.max(1, parseInt(sp.page, 10) || 1)
+        : 1,
   };
 
   const { items, total, page, totalPages } = await getDealerInventory(
@@ -51,11 +55,13 @@ export default async function InventoryPage({ searchParams }: PageProps) {
       <InventoryFiltersBar />
 
       {items.length === 0 ? (
-        <div className="mt-8 text-center">
-          <p className="text-muted-foreground">No inventory items found.</p>
-          <Button asChild className="mt-4" variant="outline">
-            <Link href="/dealer/inventory/new">Add your first item</Link>
-          </Button>
+        <div className="mt-4">
+          <EmptyState
+            title="No inventory items found"
+            description="Add your first car variant to start managing your inventory and receiving leads."
+            actionLabel="Add your first item"
+            actionHref="/dealer/inventory/new"
+          />
         </div>
       ) : (
         <>

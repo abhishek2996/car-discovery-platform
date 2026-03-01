@@ -13,7 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { submitTestDriveRequest, type ActionResult } from "@/lib/actions/leads";
+import { submitTestDriveRequest } from "@/lib/actions/leads";
+import type { ActionResult } from "@/lib/types";
 
 interface TestDriveFormWrapperProps {
   dealerId: string;

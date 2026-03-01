@@ -42,6 +42,26 @@ export default async function CarDetailPage({ params }: { params: PageParams }) 
       : null;
   const totalReviewCount = car.variants.reduce((sum, v) => sum + v._count.reviews, 0);
 
+  const serializedVariants = car.variants.map((v) => ({
+    id: v.id,
+    name: v.name,
+    fuelType: v.fuelType,
+    transmission: v.transmission,
+    engine: v.engine,
+    power: v.power,
+    torque: v.torque,
+    mileage: v.mileage,
+    seating: v.seating,
+    length: v.length,
+    width: v.width,
+    height: v.height,
+    wheelbase: v.wheelbase,
+    bootCapacity: v.bootCapacity,
+    fuelTank: v.fuelTank,
+    exShowroomPrice: v.exShowroomPrice != null ? Number(v.exShowroomPrice) : null,
+    imageUrl: v.imageUrl,
+  }));
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       {/* Breadcrumb */}
@@ -93,12 +113,12 @@ export default async function CarDetailPage({ params }: { params: PageParams }) 
 
       {/* Variant selector */}
       <section className="mt-12" id="variants">
-        <VariantSelector variants={car.variants} brandName={car.brand.name} modelName={car.name} />
+        <VariantSelector variants={serializedVariants} brandName={car.brand.name} modelName={car.name} />
       </section>
 
       {/* Full specifications */}
       <section className="mt-12" id="specifications">
-        <SpecificationsSection variants={car.variants} />
+        <SpecificationsSection variants={serializedVariants} />
       </section>
 
       {/* Expert reviews */}
@@ -121,7 +141,21 @@ export default async function CarDetailPage({ params }: { params: PageParams }) 
       {/* Similar cars */}
       {similarCars.length > 0 && (
         <section className="mt-12" id="similar">
-          <SimilarCars cars={similarCars} />
+          <SimilarCars
+            cars={similarCars.map((car) => ({
+              id: car.id,
+              name: car.name,
+              slug: car.slug,
+              bodyType: car.bodyType,
+              segment: car.segment,
+              minPrice: car.minPrice != null ? String(car.minPrice) : null,
+              maxPrice: car.maxPrice != null ? String(car.maxPrice) : null,
+              imageUrl: car.imageUrl,
+              brand: car.brand,
+              variants: car.variants,
+              _count: car._count,
+            }))}
+          />
         </section>
       )}
     </div>

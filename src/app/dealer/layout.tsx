@@ -6,9 +6,9 @@ import { DealerHeader } from "@/components/dealer/dealer-header";
 
 export default async function DealerLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   const user = await requireDealer();
 
   const dealer = await prisma.dealer.findUnique({

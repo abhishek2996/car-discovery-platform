@@ -113,6 +113,53 @@ export async function searchCars(params: CarSearchParams) {
   };
 }
 
+/** Popular/new cars for home page "most searched" style section (new cars only). */
+export async function getPopularModels(limit = 12) {
+  const orderBy = buildOrderBy("popularity");
+  return prisma.carModel.findMany({
+    include: {
+      brand: true,
+      variants: {
+        take: 1,
+        orderBy: { exShowroomPrice: "asc" },
+        select: {
+          id: true,
+          name: true,
+          fuelType: true,
+          transmission: true,
+          seating: true,
+        },
+      },
+      _count: { select: { variants: true } },
+    },
+    orderBy,
+    take: limit,
+  });
+}
+
+/** Newly launched models for hero carousel (newest first, e.g. by createdAt). */
+export async function getNewlyLaunchedModels(limit = 4) {
+  return prisma.carModel.findMany({
+    include: {
+      brand: true,
+      variants: {
+        take: 1,
+        orderBy: { exShowroomPrice: "asc" },
+        select: {
+          id: true,
+          name: true,
+          fuelType: true,
+          transmission: true,
+          seating: true,
+        },
+      },
+      _count: { select: { variants: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+}
+
 export async function getCarModelBySlug(brandSlug: string, modelSlug: string) {
   return prisma.carModel.findFirst({
     where: {

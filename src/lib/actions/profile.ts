@@ -1,19 +1,9 @@
 "use server";
 
-import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
-
-export type ActionResult = {
-  success: boolean;
-  message: string;
-  errors?: Record<string, string[]>;
-};
-
-const profileSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters").max(100).optional().or(z.literal("")),
-  phone: z.string().min(10, "Phone must be at least 10 digits").max(20).optional().or(z.literal("")),
-});
+import { profileSchema } from "@/lib/validations/profile";
+import type { ActionResult } from "@/lib/types";
 
 export async function updateProfile(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
   const user = await requireUser();
