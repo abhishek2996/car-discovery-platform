@@ -48,8 +48,11 @@ import { CitySelector } from "@/components/public/city-selector";
 import { AuthModal } from "@/components/public/auth-modal";
 import { cn } from "@/lib/utils";
 
+type NavItem = { label: string; href: string; submenu?: boolean };
+type NavSection = { key: string; label: string; items: NavItem[] };
+
 /** Desktop nav: 3 tabs with hover dropdowns. Other links (Dealers etc.) folded into dropdowns or top bar. */
-const NAV_DROPDOWNS = [
+const NAV_DROPDOWNS: NavSection[] = [
   {
     key: "new-cars",
     label: "NEW CARS",
@@ -84,13 +87,13 @@ const NAV_DROPDOWNS = [
       { label: "Visual Stories", href: "/reviews" },
     ],
   },
-] as const;
+];
 
 function NavDropdown({
   section,
   pathname,
 }: {
-  section: (typeof NAV_DROPDOWNS)[number];
+  section: NavSection;
   pathname: string;
 }) {
   const isActive =
@@ -120,7 +123,7 @@ function NavDropdown({
               className="flex items-center justify-between px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground"
             >
               {item.label}
-              {"submenu" in item && item.submenu && <ChevronRight className="size-4 text-muted-foreground" />}
+              {item.submenu ? <ChevronRight className="size-4 text-muted-foreground" /> : null}
             </Link>
           ))}
         </div>
