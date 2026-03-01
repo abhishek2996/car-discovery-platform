@@ -123,7 +123,7 @@ function NavDropdown({
               className="flex items-center justify-between px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground"
             >
               {item.label}
-              {item.submenu ? <ChevronRight className="size-4 text-muted-foreground" /> : null}
+              {(item as NavItem).submenu ? <ChevronRight className="size-4 text-muted-foreground" /> : null}
             </Link>
           ))}
         </div>
