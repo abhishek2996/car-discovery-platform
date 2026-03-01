@@ -85,7 +85,7 @@ export async function POST(request: Request) {
               prisma.testDriveSlot.updateMany({ where: { buyerId: oldId }, data: { buyerId: id } }),
               prisma.savedComparison.updateMany({ where: { userId: oldId }, data: { userId: id } }),
               prisma.savedSearch.updateMany({ where: { userId: oldId }, data: { userId: id } }),
-              prisma.review.updateMany({ where: { userId: oldId }, data: { userId: id } }),
+              prisma.review.updateMany({ where: { authorId: oldId }, data: { authorId: id } }),
               prisma.contentArticle.updateMany({
                 where: { authorId: oldId },
                 data: { authorId: id },
