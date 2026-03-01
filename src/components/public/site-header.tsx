@@ -55,7 +55,8 @@ const NAV_DROPDOWNS = [
     label: "NEW CARS",
     items: [
       { label: "Explore New Cars", href: "/new-cars" },
-      { label: "Electric Cars", href: "/new-cars?fuel=Electric" },
+      { label: "Electric Cars", href: "/new-cars?fuel=ELECTRIC" },
+      { label: "Hybrid Cars", href: "/new-cars?fuel=HYBRID" },
       { label: "Popular Cars", href: "/new-cars", submenu: true },
       { label: "Upcoming Cars", href: "/upcoming" },
       { label: "New Launches", href: "/new-cars" },
@@ -119,7 +120,7 @@ function NavDropdown({
               className="flex items-center justify-between px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground"
             >
               {item.label}
-              {item.submenu && <ChevronRight className="size-4 text-muted-foreground" />}
+              {"submenu" in item && item.submenu && <ChevronRight className="size-4 text-muted-foreground" />}
             </Link>
           ))}
         </div>
