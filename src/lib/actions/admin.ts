@@ -2,6 +2,8 @@
 
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import type { UserRole } from "@/generated/prisma";
+import { setUserRole } from "@/lib/roles";
 import {
   carBrandSchema,
   carModelSchema,
@@ -81,7 +83,6 @@ export async function createModel(_prev: ActionResult | null, formData: FormData
       minPrice: parsed.data.minPrice ?? null,
       maxPrice: parsed.data.maxPrice ?? null,
       imageUrl: primaryUrl,
-      imageUrls: imageUrlsArr.length > 0 ? JSON.stringify(imageUrlsArr) : null,
     },
   });
   revalidatePath("/admin/catalog");
@@ -116,7 +117,6 @@ export async function updateModel(id: string, _prev: ActionResult | null, formDa
       minPrice: parsed.data.minPrice ?? null,
       maxPrice: parsed.data.maxPrice ?? null,
       imageUrl: primaryUrl,
-      imageUrls: imageUrlsArr.length > 0 ? JSON.stringify(imageUrlsArr) : null,
     },
   });
   revalidatePath("/admin/catalog");
@@ -259,6 +259,7 @@ export async function updateUserRole(formData: FormData): Promise<ActionResult> 
   const parsed = userRoleSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return { success: false, message: "Invalid data." };
 
+  await setUserRole(parsed.data.userId, parsed.data.role as UserRole);
   await prisma.user.update({ where: { id: parsed.data.userId }, data: { role: parsed.data.role as never } });
   revalidatePath("/admin/users");
   return { success: true, message: `User role updated to ${parsed.data.role}.` };

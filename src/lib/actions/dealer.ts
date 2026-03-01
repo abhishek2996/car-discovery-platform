@@ -354,14 +354,17 @@ export async function updateDealerSettings(
   return { success: true, message: "Settings updated successfully." };
 }
 
-// ── Dealer signup (public) ──────────────────────────────────────
+// ── Dealer signup (public; requires Clerk auth) ───────────────────
 
 export async function dealerSignup(
   _prev: ActionResult | null,
   formData: FormData,
 ): Promise<ActionResult> {
   const { dealerSignupSchema } = await import("@/lib/validations/dealer");
-  const { hash } = await import("bcryptjs");
+  const { requireUser } = await import("@/lib/auth");
+  const { setUserRole } = await import("@/lib/roles");
+
+  const user = await requireUser();
 
   const raw = {
     ...Object.fromEntries(formData.entries()),
@@ -377,13 +380,13 @@ export async function dealerSignup(
     };
   }
 
-  const existingUser = await prisma.user.findUnique({
-    where: { email: parsed.data.contactEmail.toLowerCase() },
+  const existingDealer = await prisma.dealer.findUnique({
+    where: { userId: user.id },
   });
-  if (existingUser) {
+  if (existingDealer) {
     return {
       success: false,
-      message: "An account with this email already exists.",
+      message: "You have already applied as a dealer.",
     };
   }
 
@@ -400,31 +403,33 @@ export async function dealerSignup(
     };
   }
 
-  const hashedPassword = await hash(parsed.data.contactPassword, 12);
-
-  await prisma.user.create({
-    data: {
-      email: parsed.data.contactEmail.toLowerCase(),
-      password: hashedPassword,
-      name: parsed.data.contactName,
-      phone: parsed.data.phone,
-      role: "DEALER",
-      dealer: {
-        create: {
-          name: parsed.data.name,
-          slug,
-          city: parsed.data.city,
-          address: parsed.data.address,
-          phone: parsed.data.phone,
-          email: parsed.data.email,
-          description: parsed.data.description || null,
-          status: "PENDING",
-          dealerBrands: {
-            create: parsed.data.brandIds.map((brandId) => ({ brandId })),
-          },
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: user.id },
+      data: { name: parsed.data.contactName, phone: parsed.data.phone },
+    }),
+    prisma.dealer.create({
+      data: {
+        userId: user.id,
+        name: parsed.data.name,
+        slug,
+        city: parsed.data.city,
+        address: parsed.data.address,
+        phone: parsed.data.phone,
+        email: parsed.data.email,
+        description: parsed.data.description || null,
+        status: "PENDING",
+        dealerBrands: {
+          create: parsed.data.brandIds.map((brandId) => ({ brandId })),
         },
       },
-    },
+    }),
+  ]);
+
+  await setUserRole(user.id, "DEALER");
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { role: "DEALER" },
   });
 
   const adminUsers = await prisma.user.findMany({

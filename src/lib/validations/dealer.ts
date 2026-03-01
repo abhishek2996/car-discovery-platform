@@ -66,10 +66,6 @@ export const dealerSignupSchema = z.object({
   description: z.string().max(1000).optional(),
   contactName: z.string().min(2, "Contact person name is required"),
   contactEmail: z.string().email("Valid email is required"),
-  contactPassword: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(100),
   brandIds: z.array(z.string()).min(1, "Select at least one brand"),
 });
 

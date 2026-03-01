@@ -1,37 +1,40 @@
-import NextAuth from "next-auth";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { authConfig } from "@/auth.config";
 
-type UserRole = "BUYER" | "DEALER" | "ADMIN";
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/login",
+  "/cars/(.*)",
+  "/new-cars(.*)",
+  "/brands/(.*)",
+  "/compare(.*)",
+  "/upcoming(.*)",
+  "/reviews(.*)",
+  "/dealers(.*)",
+  "/dealer-signup",
+  "/api/webhooks/(.*)",
+  "/unauthorised",
+  "/access-denied",
+]);
 
-const protectedPrefixes = ["/dealer", "/admin"];
+const isDealerRoute = createRouteMatcher(["/dealer", "/dealer/(.*)"]);
+const isAdminRoute = createRouteMatcher(["/admin", "/admin/(.*)"]);
 
-function isProtected(pathname: string) {
-  return protectedPrefixes.some(
-    (p) => pathname === p || pathname.startsWith(p + "/"),
-  );
-}
-
-const edgeAuth = NextAuth(authConfig);
-
-export default edgeAuth.auth((req) => {
+export default clerkMiddleware(async (auth, req) => {
   const { pathname } = req.nextUrl;
 
-  if (!isProtected(pathname)) return NextResponse.next();
+  if (isPublicRoute(req)) return NextResponse.next();
 
-  if (!req.auth?.user) {
-    const login = new URL("/login", req.nextUrl.origin);
-    login.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(login);
-  }
-
-  const role = (req.auth.user as { role?: UserRole }).role;
-
-  if (pathname.startsWith("/admin") && role !== "ADMIN") {
-    return NextResponse.redirect(new URL("/access-denied", req.nextUrl.origin));
-  }
-  if (pathname.startsWith("/dealer") && role !== "DEALER" && role !== "ADMIN") {
-    return NextResponse.redirect(new URL("/access-denied", req.nextUrl.origin));
+  if (isDealerRoute(req) || isAdminRoute(req)) {
+    const { userId } = await auth();
+    if (!userId) {
+      const signIn = new URL("/sign-in", req.nextUrl.origin);
+      signIn.searchParams.set("redirect_url", pathname);
+      return NextResponse.redirect(signIn);
+    }
+    // Role check is done in layout (requireDealer / requireAdmin) → redirect to /unauthorised
   }
 
   return NextResponse.next();
@@ -39,6 +42,7 @@ export default edgeAuth.auth((req) => {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/auth|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api|trpc)(.*)",
   ],
 };

@@ -11,12 +11,20 @@ export default async function DealerLayout({
 }>) {
   const user = await requireDealer();
 
-  const dealer = await prisma.dealer.findUnique({
-    where: { id: user.dealerId! },
-    select: { name: true, status: true },
-  });
-
-  if (!dealer) redirect("/access-denied");
+  let dealer: { name: string; status: string } | null = null;
+  if (user.dealerId) {
+    dealer = await prisma.dealer.findUnique({
+      where: { id: user.dealerId },
+      select: { name: true, status: true },
+    });
+  }
+  if (!dealer && user.role === "ADMIN") {
+    const first = await prisma.dealer.findFirst({
+      select: { name: true, status: true },
+    });
+    dealer = first;
+  }
+  if (!dealer) redirect("/unauthorised");
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">

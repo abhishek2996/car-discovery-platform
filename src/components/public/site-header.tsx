@@ -3,19 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { UserButton, useUser } from "@clerk/nextjs";
 import {
   Car,
   Menu,
   Search,
   X,
-  GitCompareArrows,
-  Clock,
-  Star,
   Store,
   LogIn,
-  User,
-  LogOut,
   LayoutDashboard,
   Heart,
   ChevronDown,
@@ -37,13 +32,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { CitySelector } from "@/components/public/city-selector";
 import { AuthModal } from "@/components/public/auth-modal";
 import { cn } from "@/lib/utils";
@@ -197,6 +185,8 @@ export function SiteHeader() {
           <div className="hidden sm:block">
             <CitySelector />
           </div>
+            <CitySelector />
+          </div>
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
@@ -253,7 +243,6 @@ export function SiteHeader() {
             </SheetContent>
           </Sheet>
         </div>
-      </div>
 
       {/* Second row: main nav with hover dropdowns */}
       <div className="border-t border-border/50">
@@ -287,13 +276,13 @@ export function SiteHeader() {
 }
 
 function AuthButtons({ onAuthModalOpenChange }: { onAuthModalOpenChange: (open: boolean) => void }) {
-  const { data: session, status } = useSession();
+  const { user, isLoaded } = useUser();
 
-  if (status === "loading") {
+  if (!isLoaded) {
     return <div className="hidden h-8 w-8 animate-pulse rounded-full bg-muted md:block" />;
   }
 
-  if (!session?.user) {
+  if (!user) {
     return (
       <div className="hidden items-center gap-3 md:flex">
         <Button
@@ -301,8 +290,9 @@ function AuthButtons({ onAuthModalOpenChange }: { onAuthModalOpenChange: (open: 
           size="sm"
           className="text-muted-foreground font-normal"
           onClick={() => onAuthModalOpenChange(true)}
+          asChild
         >
-          Login / Register
+          <Link href="/sign-in">Login / Register</Link>
         </Button>
         <Button asChild size="sm" className="bg-orange-500 hover:bg-orange-600">
           <Link href="/dealer-signup">Dealer Sign up</Link>
@@ -311,55 +301,47 @@ function AuthButtons({ onAuthModalOpenChange }: { onAuthModalOpenChange: (open: 
     );
   }
 
-  const user = session.user as { name?: string; email?: string; role?: string };
+  const role = (user.publicMetadata?.role as string) ?? "BUYER";
   const dashboardHref =
-    user.role === "ADMIN" ? "/admin" : user.role === "DEALER" ? "/dealer" : "/my-activity";
+    role === "ADMIN" ? "/admin" : role === "DEALER" ? "/dealer" : "/my-activity";
 
   return (
-    <div className="hidden md:block">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="gap-2">
-            <User className="h-3.5 w-3.5" />
-            <span className="max-w-[100px] truncate">{user.name || user.email}</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem asChild>
-            <Link href={dashboardHref} className="flex items-center gap-2">
-              <LayoutDashboard className="h-3.5 w-3.5" />
-              {user.role === "ADMIN" ? "Admin Panel" : user.role === "DEALER" ? "Dealer Dashboard" : "My Activity"}
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="flex items-center gap-2 text-destructive focus:text-destructive"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            Sign out
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div className="hidden md:flex md:items-center md:gap-2">
+      <Button variant="ghost" size="sm" className="gap-2" asChild>
+        <Link href={dashboardHref} className="flex items-center gap-2">
+          <LayoutDashboard className="h-3.5 w-3.5" />
+          {role === "ADMIN" ? "Admin Panel" : role === "DEALER" ? "Dealer Dashboard" : "My Activity"}
+        </Link>
+      </Button>
+      <UserButton
+        afterSignOutUrl="/"
+        appearance={{
+          elements: {
+            avatarBox: "h-8 w-8",
+          },
+        }}
+      />
     </div>
   );
 }
 
 function MobileAuthLinks({ onClose, onOpenAuthModal }: { onClose: () => void; onOpenAuthModal?: () => void }) {
-  const { data: session } = useSession();
+  const { user, isLoaded } = useUser();
 
-  if (!session?.user) {
+  if (!isLoaded) return null;
+
+  if (!user) {
     return (
       <>
         <div className="my-2 border-t" />
-        <button
-          type="button"
-          onClick={() => { onClose(); onOpenAuthModal?.(); }}
+        <Link
+          href="/sign-in"
+          onClick={onClose}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         >
           <LogIn className="size-4" />
           Sign in
-        </button>
+        </Link>
         <Link
           href="/dealer-signup"
           onClick={onClose}
@@ -372,9 +354,9 @@ function MobileAuthLinks({ onClose, onOpenAuthModal }: { onClose: () => void; on
     );
   }
 
-  const user = session.user as { name?: string; email?: string; role?: string };
+  const role = (user.publicMetadata?.role as string) ?? "BUYER";
   const dashboardHref =
-    user.role === "ADMIN" ? "/admin" : user.role === "DEALER" ? "/dealer" : "/my-activity";
+    role === "ADMIN" ? "/admin" : role === "DEALER" ? "/dealer" : "/my-activity";
 
   return (
     <>
@@ -385,15 +367,12 @@ function MobileAuthLinks({ onClose, onOpenAuthModal }: { onClose: () => void; on
         className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
       >
         <LayoutDashboard className="size-4" />
-        {user.role === "ADMIN" ? "Admin Panel" : user.role === "DEALER" ? "Dealer Dashboard" : "My Activity"}
+        {role === "ADMIN" ? "Admin Panel" : role === "DEALER" ? "Dealer Dashboard" : "My Activity"}
       </Link>
-      <button
-        onClick={() => { signOut({ callbackUrl: "/" }); onClose(); }}
-        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10"
-      >
-        <LogOut className="size-4" />
-        Sign out
-      </button>
+      <div className="flex items-center gap-2 px-3 py-2">
+        <UserButton afterSignOutUrl="/" />
+        <span className="text-sm text-muted-foreground">Sign out</span>
+      </div>
     </>
   );
 }

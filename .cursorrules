@@ -45,7 +45,7 @@
     - [x] Zustand for client-side dashboard state (filters, modals, multi-step forms)
     - [x] Recharts for analytics charts in dashboards
     - [x] Resend for transactional emails
-    - [x] Uploadthing for image & file uploads
+    - [x] Cloudflare R2 for image storage (replaced Uploadthing)
     - [x] Prisma ORM with PostgreSQL
     - [x] `next-auth@beta` for authentication (Auth.js v5 style)
   - [x] Set up base layouts & design system
@@ -94,7 +94,7 @@
     - [X] Zod-powered validation for search/filter inputs
   - [X] Car detail & comparison
     - [X] Car detail page
-      - [X] Image gallery with Uploadthing-backed images
+      - [X] Image gallery with R2-backed images
       - [X] Price summary (ex-showroom and by city if available)
       - [X] Key highlights & quick spec summary
       - [X] Full specifications by section (engine, performance, dimensions, safety, features)
@@ -136,7 +136,7 @@
     - [X] Add/edit inventory item flow
       - [X] Link inventory to existing `CarVariant`
       - [X] Configure display price, stock, color availability, visibility
-      - [ ] Upload photos via Uploadthing
+      - [X] Upload photos via R2 (custom upload API + ImageUploader / MultiImageUploader)
       - [X] Validation via Zod + optimistic UI with Zustand
   - [X] Lead & enquiry management
     - [X] Leads list (tabbed by status: new, in-progress, completed, dropped)
@@ -174,7 +174,7 @@
   - [X] Car catalog management
     - [X] CRUD for `CarBrand`, `CarModel`, `CarVariant`, and shared spec taxonomies
     - [ ] Bulk import/update variants via CSV/JSON
-    - [ ] Media management for official photos via Uploadthing
+    - [ ] Media management for official photos via R2
   - [X] Dealer management
     - [X] Dealer registrations review queue (approve/reject)
     - [X] Dealer directory with filters (status, city, brands)
@@ -203,9 +203,11 @@
     - [X] Buyer emails: enquiry confirmation, test drive confirmation/update, upcoming car alerts
     - [X] Dealer emails: new lead notification, test drive booking details
     - [X] Admin emails: new dealer signup, critical system alerts
-  - [X] File uploads with Uploadthing
-    - [X] Car images, dealer showroom media, article hero images
-    - [X] Safe file type/size validation and cleanup strategy
+  - [X] File uploads with Cloudflare R2
+    - [X] lib/r2.ts: uploadToR2, deleteFromR2, getR2Url (S3-compatible client)
+    - [X] One-time migration script scripts/migrate-images-to-r2.ts (idempotent)
+    - [X] Uploadthing removed (route, lib, packages, env); .env.example updated for R2
+    - [X] Migration 2: app/api/upload (POST + DELETE), ImageUploader, MultiImageUploader; all forms use R2
 
 - [ ] Test Auth Flows End to End
 
@@ -242,7 +244,7 @@
     - [ ] Performance passes (Lighthouse) for key public pages
     - [ ] SEO checks for car, brand, comparison, and content pages
   - [ ] Deployment & environments
-    - [ ] Configure environment variables for database, Auth.js, Resend, Uploadthing
+    - [ ] Configure environment variables for database, Auth, Resend, R2
     - [ ] Production deployment (e.g., Vercel) with Prisma migrations
     - [ ] Basic backup/restore strategy for PostgreSQL
     - [ ] Smoke checklist for each portal (public, dealer, admin) before go-live

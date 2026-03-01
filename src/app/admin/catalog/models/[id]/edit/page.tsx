@@ -37,7 +37,6 @@ export default async function EditModelPage(props: PageProps) {
           minPrice: model.minPrice != null ? Number(model.minPrice) : null,
           maxPrice: model.maxPrice != null ? Number(model.maxPrice) : null,
           imageUrl: model.imageUrl,
-          imageUrls: model.imageUrls ?? null,
         }}
       />
     </>

@@ -170,6 +170,9 @@ export function DealerSignupForm({ brands }: DealerSignupFormProps) {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Your Account</CardTitle>
+            <p className="text-sm text-muted-foreground font-normal">
+              You must be signed in to apply. Your contact details will be used for this application.
+            </p>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -187,7 +190,7 @@ export function DealerSignupForm({ brands }: DealerSignupFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="contactEmail">Login Email *</Label>
+              <Label htmlFor="contactEmail">Contact Email *</Label>
               <Input
                 id="contactEmail"
                 name="contactEmail"
@@ -197,21 +200,6 @@ export function DealerSignupForm({ brands }: DealerSignupFormProps) {
               {state?.errors?.contactEmail && (
                 <p className="text-xs text-destructive">
                   {state.errors.contactEmail[0]}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="contactPassword">Password *</Label>
-              <Input
-                id="contactPassword"
-                name="contactPassword"
-                type="password"
-                placeholder="At least 8 characters"
-              />
-              {state?.errors?.contactPassword && (
-                <p className="text-xs text-destructive">
-                  {state.errors.contactPassword[0]}
                 </p>
               )}
             </div>

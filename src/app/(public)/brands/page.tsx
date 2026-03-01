@@ -1,6 +1,8 @@
 import { BrandGrid } from "@/components/public/brand-grid";
 import { getAllBrands } from "@/lib/data/brands";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "All Car Brands – CarDiscovery",
   description:

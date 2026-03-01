@@ -15,7 +15,7 @@ export function AccessDenied() {
           Go home
         </Link>
         <Link
-          href="/login"
+          href="/sign-in"
           className="px-4 py-2 rounded-md border border-border hover:bg-muted"
         >
           Sign in

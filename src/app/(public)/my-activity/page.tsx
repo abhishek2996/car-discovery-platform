@@ -46,7 +46,7 @@ const TD_STATUS_CONFIG: Record<string, { label: string; variant: "default" | "se
 
 export default async function MyActivityPage() {
   const session = await getSession();
-  if (!session?.user?.id) redirect("/login");
+  if (!session?.user?.id) redirect("/sign-in");
 
   const [enquiries, testDrives, savedComparisons, profile] = await Promise.all([
     getBuyerEnquiries(session.user.id),

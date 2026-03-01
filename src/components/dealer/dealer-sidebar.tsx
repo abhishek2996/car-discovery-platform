@@ -14,7 +14,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { signOut } from "next-auth/react";
+import { SignOutButton } from "@clerk/nextjs";
 
 const navItems: {
   href: string;
@@ -75,13 +75,14 @@ export function DealerSidebar({ dealerName, className }: DealerSidebarProps) {
       </nav>
 
       <div className="border-t p-3">
-        <button
-          onClick={() => signOut({ callbackUrl: "/" })}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-        >
-          <LogOut className="h-4 w-4 shrink-0" />
-          Sign out
-        </button>
+        <SignOutButton>
+          <button
+            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            Sign out
+          </button>
+        </SignOutButton>
       </div>
     </div>
   );
