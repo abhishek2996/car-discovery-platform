@@ -6,6 +6,32 @@ import "dotenv/config";
 const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
 
+// Placeholder car images by body type (Unsplash CDN – free to use, no API key)
+const BODY_TYPE_IMAGES: Record<string, string> = {
+  HATCHBACK:
+    "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=800&q=80",
+  SEDAN:
+    "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&q=80",
+  SUV: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&q=80",
+  MUV: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&q=80",
+  COUPÉ:
+    "https://images.unsplash.com/photo-1542362567-646918a6428?w=800&q=80",
+  CONVERTIBLE:
+    "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80",
+  WAGON:
+    "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800&q=80",
+  PICKUP:
+    "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=800&q=80",
+  LUXURY:
+    "https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&q=80",
+};
+const DEFAULT_CAR_IMAGE =
+  "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=800&q=80";
+
+function getImageForBodyType(bodyType: string): string {
+  return BODY_TYPE_IMAGES[bodyType] ?? DEFAULT_CAR_IMAGE;
+}
+
 async function main() {
   // --- Brands ---
   const brandData = [
@@ -29,6 +55,15 @@ async function main() {
     { name: "Jaguar", slug: "jaguar", country: "United Kingdom" },
     { name: "Škoda", slug: "skoda", country: "Czech Republic" },
     { name: "SEAT", slug: "seat", country: "Spain" },
+    { name: "Renault", slug: "renault", country: "France" },
+    { name: "Citroën", slug: "citroen", country: "France" },
+    { name: "MG", slug: "mg", country: "United Kingdom" },
+    { name: "Dacia", slug: "dacia", country: "Romania" },
+    { name: "Cupra", slug: "cupra", country: "Spain" },
+    { name: "Polestar", slug: "polestar", country: "Sweden" },
+    { name: "Lexus", slug: "lexus", country: "Japan" },
+    { name: "Suzuki", slug: "suzuki", country: "Japan" },
+    { name: "DS", slug: "ds", country: "France" },
   ];
 
   for (const b of brandData) {
@@ -345,13 +380,501 @@ async function main() {
         { name: "iX1 xDrive30 M Sport", slug: "ix1-xdrive30-m-sport", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 52000, engine: "Dual Motor Electric AWD", power: "308 bhp", mileage: "272 miles" },
       ],
     },
+    // --- Additional UK-market models ---
+    {
+      brandSlug: "honda",
+      name: "Jazz",
+      slug: "jazz",
+      bodyType: "HATCHBACK",
+      segment: "sub-compact",
+      minPrice: 22500,
+      maxPrice: 28500,
+      variants: [
+        { name: "EX 1.5 i-MMD", slug: "ex-1-5-immd", fuelType: "HYBRID", transmission: "CVT", seating: 5, exShowroomPrice: 22500, engine: "1.5L e:HEV Hybrid", power: "107 bhp", mileage: "62.8 mpg" },
+        { name: "Crosstar EX 1.5 i-MMD", slug: "crosstar-ex-1-5-immd", fuelType: "HYBRID", transmission: "CVT", seating: 5, exShowroomPrice: 26500, engine: "1.5L e:HEV Hybrid", power: "107 bhp", mileage: "58.9 mpg" },
+      ],
+    },
+    {
+      brandSlug: "honda",
+      name: "Civic",
+      slug: "civic",
+      bodyType: "HATCHBACK",
+      segment: "compact",
+      minPrice: 29950,
+      maxPrice: 38500,
+      variants: [
+        { name: "Sport 2.0 i-MMD", slug: "sport-2-0-immd", fuelType: "HYBRID", transmission: "CVT", seating: 5, exShowroomPrice: 29950, engine: "2.0L e:HEV Hybrid", power: "181 bhp", mileage: "56.5 mpg" },
+        { name: "Advance 2.0 i-MMD", slug: "advance-2-0-immd", fuelType: "HYBRID", transmission: "CVT", seating: 5, exShowroomPrice: 35000, engine: "2.0L e:HEV Hybrid", power: "181 bhp", mileage: "56.5 mpg" },
+        { name: "Type R", slug: "type-r", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 38500, engine: "2.0L Turbo Petrol", power: "329 bhp", mileage: "31.0 mpg" },
+      ],
+    },
+    {
+      brandSlug: "jaguar",
+      name: "E-Pace",
+      slug: "e-pace",
+      bodyType: "SUV",
+      segment: "compact",
+      minPrice: 38500,
+      maxPrice: 52000,
+      variants: [
+        { name: "P200 R-Dynamic S", slug: "p200-r-dynamic-s", fuelType: "PETROL", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 38500, engine: "2.0L Turbo Petrol", power: "197 bhp", mileage: "35.8 mpg" },
+        { name: "P250 R-Dynamic SE", slug: "p250-r-dynamic-se", fuelType: "PETROL", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 45000, engine: "2.0L Turbo Petrol", power: "246 bhp", mileage: "33.2 mpg" },
+        { name: "P300e R-Dynamic HSE", slug: "p300e-r-dynamic-hse", fuelType: "PLUGIN_HYBRID", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 52000, engine: "1.5L Plug-in Hybrid", power: "309 bhp", mileage: "141.2 mpg" },
+      ],
+    },
+    {
+      brandSlug: "jaguar",
+      name: "F-Pace",
+      slug: "f-pace",
+      bodyType: "SUV",
+      segment: "mid-size",
+      minPrice: 45000,
+      maxPrice: 72000,
+      variants: [
+        { name: "P250 S", slug: "p250-s", fuelType: "PETROL", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 45000, engine: "2.0L Turbo Petrol", power: "246 bhp", mileage: "32.1 mpg" },
+        { name: "P400 R-Dynamic HSE", slug: "p400-r-dynamic-hse", fuelType: "PETROL", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 62000, engine: "3.0L Turbo Petrol", power: "395 bhp", mileage: "28.0 mpg" },
+        { name: "P400e R-Dynamic", slug: "p400e-r-dynamic", fuelType: "PLUGIN_HYBRID", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 72000, engine: "2.0L Plug-in Hybrid", power: "404 bhp", mileage: "128.4 mpg" },
+      ],
+    },
+    {
+      brandSlug: "seat",
+      name: "Ibiza",
+      slug: "ibiza",
+      bodyType: "HATCHBACK",
+      segment: "sub-compact",
+      minPrice: 19500,
+      maxPrice: 26500,
+      variants: [
+        { name: "SE 1.0 TSI", slug: "se-1-0-tsi", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 19500, engine: "1.0L Turbo Petrol", power: "94 bhp", mileage: "52.3 mpg" },
+        { name: "FR 1.5 TSI", slug: "fr-1-5-tsi", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 23500, engine: "1.5L Turbo Petrol", power: "148 bhp", mileage: "49.6 mpg" },
+        { name: "Xcellence 1.0 TSI DSG", slug: "xcellence-1-0-tsi-dsg", fuelType: "PETROL", transmission: "DCT", seating: 5, exShowroomPrice: 26500, engine: "1.0L Turbo Petrol", power: "108 bhp", mileage: "50.4 mpg" },
+      ],
+    },
+    {
+      brandSlug: "seat",
+      name: "Leon",
+      slug: "leon",
+      bodyType: "HATCHBACK",
+      segment: "compact",
+      minPrice: 25500,
+      maxPrice: 38000,
+      variants: [
+        { name: "SE 1.5 TSI", slug: "se-1-5-tsi", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 25500, engine: "1.5L Turbo Petrol", power: "148 bhp", mileage: "49.6 mpg" },
+        { name: "FR 2.0 TSI DSG", slug: "fr-2-0-tsi-dsg", fuelType: "PETROL", transmission: "DCT", seating: 5, exShowroomPrice: 32000, engine: "2.0L Turbo Petrol", power: "242 bhp", mileage: "38.7 mpg" },
+        { name: "e-Hybrid 1.4 TSI", slug: "e-hybrid-1-4-tsi", fuelType: "PLUGIN_HYBRID", transmission: "DCT", seating: 5, exShowroomPrice: 38000, engine: "1.4L Plug-in Hybrid", power: "201 bhp", mileage: "217.3 mpg" },
+      ],
+    },
+    {
+      brandSlug: "renault",
+      name: "Clio",
+      slug: "clio",
+      bodyType: "HATCHBACK",
+      segment: "sub-compact",
+      minPrice: 19500,
+      maxPrice: 27500,
+      variants: [
+        { name: "Evolution 1.0 TCe", slug: "evolution-1-0-tce", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 19500, engine: "1.0L Turbo Petrol", power: "89 bhp", mileage: "52.3 mpg" },
+        { name: "Iconic E-Tech Full Hybrid", slug: "iconic-e-tech-full-hybrid", fuelType: "HYBRID", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 24500, engine: "1.6L Hybrid", power: "143 bhp", mileage: "62.8 mpg" },
+        { name: "Esprit Alpine E-Tech", slug: "esprit-alpine-e-tech", fuelType: "HYBRID", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 27500, engine: "1.6L Hybrid", power: "143 bhp", mileage: "62.8 mpg" },
+      ],
+    },
+    {
+      brandSlug: "renault",
+      name: "Captur",
+      slug: "captur",
+      bodyType: "SUV",
+      segment: "sub-compact",
+      minPrice: 22500,
+      maxPrice: 35000,
+      variants: [
+        { name: "Evolution 1.0 TCe", slug: "evolution-1-0-tce", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 22500, engine: "1.0L Turbo Petrol", power: "99 bhp", mileage: "48.7 mpg" },
+        { name: "Iconic E-Tech Full Hybrid", slug: "iconic-e-tech-full-hybrid", fuelType: "HYBRID", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 29500, engine: "1.6L Hybrid", power: "143 bhp", mileage: "58.9 mpg" },
+        { name: "Esprit Alpine E-Tech", slug: "esprit-alpine-e-tech", fuelType: "HYBRID", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 35000, engine: "1.6L Hybrid", power: "143 bhp", mileage: "58.9 mpg" },
+      ],
+    },
+    {
+      brandSlug: "renault",
+      name: "Zoe",
+      slug: "zoe",
+      bodyType: "HATCHBACK",
+      segment: "sub-compact",
+      minPrice: 29995,
+      maxPrice: 34995,
+      variants: [
+        { name: "Zen R135", slug: "zen-r135", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 29995, engine: "Single Motor Electric", power: "134 bhp", mileage: "239 miles" },
+        { name: "Iconic R135", slug: "iconic-r135", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 34995, engine: "Single Motor Electric", power: "134 bhp", mileage: "239 miles" },
+      ],
+    },
+    {
+      brandSlug: "citroen",
+      name: "C3",
+      slug: "c3",
+      bodyType: "HATCHBACK",
+      segment: "sub-compact",
+      minPrice: 17500,
+      maxPrice: 24500,
+      variants: [
+        { name: "You 1.2 PureTech", slug: "you-1-2-puretech", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 17500, engine: "1.2L PureTech", power: "82 bhp", mileage: "53.3 mpg" },
+        { name: "Max 1.2 PureTech", slug: "max-1-2-puretech", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 21500, engine: "1.2L Turbo Petrol", power: "108 bhp", mileage: "51.4 mpg" },
+        { name: "C-Series 1.2 PureTech", slug: "c-series-1-2-puretech", fuelType: "PETROL", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 24500, engine: "1.2L Turbo Petrol", power: "128 bhp", mileage: "49.6 mpg" },
+      ],
+    },
+    {
+      brandSlug: "citroen",
+      name: "C4",
+      slug: "c4",
+      bodyType: "HATCHBACK",
+      segment: "compact",
+      minPrice: 26500,
+      maxPrice: 38000,
+      variants: [
+        { name: "You 1.2 PureTech", slug: "you-1-2-puretech", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 26500, engine: "1.2L Turbo Petrol", power: "128 bhp", mileage: "49.6 mpg" },
+        { name: "Shine 1.2 PureTech", slug: "shine-1-2-puretech", fuelType: "PETROL", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 31000, engine: "1.2L Turbo Petrol", power: "128 bhp", mileage: "47.9 mpg" },
+        { name: "e-C4 50kWh", slug: "e-c4-50kwh", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 38000, engine: "Single Motor Electric", power: "134 bhp", mileage: "217 miles" },
+      ],
+    },
+    {
+      brandSlug: "mg",
+      name: "MG3",
+      slug: "mg3",
+      bodyType: "HATCHBACK",
+      segment: "sub-compact",
+      minPrice: 14995,
+      maxPrice: 18995,
+      variants: [
+        { name: "Exclusive", slug: "exclusive", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 14995, engine: "1.5L Petrol", power: "104 bhp", mileage: "48.7 mpg" },
+        { name: "Trophy", slug: "trophy", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 18995, engine: "1.5L Petrol", power: "104 bhp", mileage: "48.7 mpg" },
+      ],
+    },
+    {
+      brandSlug: "mg",
+      name: "ZS",
+      slug: "zs",
+      bodyType: "SUV",
+      segment: "sub-compact",
+      minPrice: 19995,
+      maxPrice: 31995,
+      variants: [
+        { name: "Exclusive 1.0 T-GDi", slug: "exclusive-1-0-tgdi", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 19995, engine: "1.0L Turbo Petrol", power: "108 bhp", mileage: "47.9 mpg" },
+        { name: "Trophy 1.5 T-GDi", slug: "trophy-1-5-tgdi", fuelType: "PETROL", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 24995, engine: "1.5L Turbo Petrol", power: "161 bhp", mileage: "42.2 mpg" },
+        { name: "EV Trophy Long Range", slug: "ev-trophy-long-range", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 31995, engine: "Single Motor Electric", power: "154 bhp", mileage: "273 miles" },
+      ],
+    },
+    {
+      brandSlug: "mg",
+      name: "4",
+      slug: "mg4",
+      bodyType: "HATCHBACK",
+      segment: "compact",
+      minPrice: 26995,
+      maxPrice: 36995,
+      variants: [
+        { name: "SE Standard Range", slug: "se-standard-range", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 26995, engine: "Single Motor Electric", power: "168 bhp", mileage: "218 miles" },
+        { name: "Trophy Long Range", slug: "trophy-long-range", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 31995, engine: "Single Motor Electric", power: "201 bhp", mileage: "281 miles" },
+        { name: "XPOWER", slug: "xpower", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 36995, engine: "Dual Motor Electric AWD", power: "429 bhp", mileage: "239 miles" },
+      ],
+    },
+    {
+      brandSlug: "dacia",
+      name: "Sandero",
+      slug: "sandero",
+      bodyType: "HATCHBACK",
+      segment: "sub-compact",
+      minPrice: 12995,
+      maxPrice: 18995,
+      variants: [
+        { name: "Essential 1.0 SCe", slug: "essential-1-0-sce", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 12995, engine: "1.0L Petrol", power: "89 bhp", mileage: "52.3 mpg" },
+        { name: "Comfort 1.0 TCe", slug: "comfort-1-0-tce", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 15995, engine: "1.0L Turbo Petrol", power: "99 bhp", mileage: "51.4 mpg" },
+        { name: "Essential 1.0 TCe LPG", slug: "essential-1-0-tce-lpg", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 18995, engine: "1.0L Turbo Petrol LPG", power: "99 bhp", mileage: "48.7 mpg" },
+      ],
+    },
+    {
+      brandSlug: "dacia",
+      name: "Duster",
+      slug: "duster",
+      bodyType: "SUV",
+      segment: "compact",
+      minPrice: 17995,
+      maxPrice: 27995,
+      variants: [
+        { name: "Essential 1.0 TCe", slug: "essential-1-0-tce", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 17995, engine: "1.0L Turbo Petrol", power: "108 bhp", mileage: "44.8 mpg" },
+        { name: "Comfort 1.3 TCe", slug: "comfort-1-3-tce", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 21995, engine: "1.3L Turbo Petrol", power: "148 bhp", mileage: "42.2 mpg" },
+        { name: "Prestige 1.6 Hybrid", slug: "prestige-1-6-hybrid", fuelType: "HYBRID", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 27995, engine: "1.6L Hybrid", power: "141 bhp", mileage: "53.3 mpg" },
+      ],
+    },
+    {
+      brandSlug: "cupra",
+      name: "Born",
+      slug: "born",
+      bodyType: "HATCHBACK",
+      segment: "compact",
+      minPrice: 36970,
+      maxPrice: 44970,
+      variants: [
+        { name: "V 58kWh", slug: "v-58kwh", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 36970, engine: "Single Motor Electric", power: "168 bhp", mileage: "264 miles" },
+        { name: "VZ 77kWh", slug: "vz-77kwh", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 41970, engine: "Single Motor Electric", power: "228 bhp", mileage: "343 miles" },
+        { name: "VZ 77kWh e-Boost", slug: "vz-77kwh-e-boost", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 44970, engine: "Single Motor Electric", power: "321 bhp", mileage: "335 miles" },
+      ],
+    },
+    {
+      brandSlug: "cupra",
+      name: "Formentor",
+      slug: "formentor",
+      bodyType: "SUV",
+      segment: "compact",
+      minPrice: 35970,
+      maxPrice: 58970,
+      variants: [
+        { name: "V1 1.5 TSI", slug: "v1-1-5-tsi", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 35970, engine: "1.5L Turbo Petrol", power: "148 bhp", mileage: "44.8 mpg" },
+        { name: "VZ2 2.0 TSI 4Drive", slug: "vz2-2-0-tsi-4drive", fuelType: "PETROL", transmission: "DCT", seating: 5, exShowroomPrice: 45970, engine: "2.0L Turbo Petrol AWD", power: "306 bhp", mileage: "34.0 mpg" },
+        { name: "VZ5 2.5 TSI 4Drive", slug: "vz5-2-5-tsi-4drive", fuelType: "PETROL", transmission: "DCT", seating: 5, exShowroomPrice: 58970, engine: "2.5L Turbo Petrol AWD", power: "386 bhp", mileage: "29.4 mpg" },
+      ],
+    },
+    {
+      brandSlug: "polestar",
+      name: "Polestar 2",
+      slug: "polestar-2",
+      bodyType: "SEDAN",
+      segment: "mid-size",
+      minPrice: 44900,
+      maxPrice: 59900,
+      variants: [
+        { name: "Standard Range Single Motor", slug: "standard-range-single-motor", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 44900, engine: "Single Motor Electric", power: "268 bhp", mileage: "339 miles" },
+        { name: "Long Range Single Motor", slug: "long-range-single-motor", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 49900, engine: "Single Motor Electric", power: "295 bhp", mileage: "406 miles" },
+        { name: "Long Range Dual Motor", slug: "long-range-dual-motor", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 59900, engine: "Dual Motor Electric AWD", power: "421 bhp", mileage: "367 miles" },
+      ],
+    },
+    {
+      brandSlug: "lexus",
+      name: "UX",
+      slug: "ux",
+      bodyType: "SUV",
+      segment: "sub-compact",
+      minPrice: 32950,
+      maxPrice: 46950,
+      variants: [
+        { name: "UX 250h Takumi", slug: "ux-250h-takumi", fuelType: "HYBRID", transmission: "CVT", seating: 5, exShowroomPrice: 32950, engine: "2.0L Hybrid", power: "181 bhp", mileage: "53.3 mpg" },
+        { name: "UX 300e Takumi", slug: "ux-300e-takumi", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 46950, engine: "Single Motor Electric", power: "201 bhp", mileage: "273 miles" },
+      ],
+    },
+    {
+      brandSlug: "lexus",
+      name: "NX",
+      slug: "nx",
+      bodyType: "SUV",
+      segment: "mid-size",
+      minPrice: 39950,
+      maxPrice: 58950,
+      variants: [
+        { name: "NX 350h Takumi", slug: "nx-350h-takumi", fuelType: "HYBRID", transmission: "CVT", seating: 5, exShowroomPrice: 39950, engine: "2.5L Hybrid", power: "239 bhp", mileage: "53.3 mpg" },
+        { name: "NX 450h+ Takumi", slug: "nx-450h-plus-takumi", fuelType: "PLUGIN_HYBRID", transmission: "CVT", seating: 5, exShowroomPrice: 52950, engine: "2.5L Plug-in Hybrid", power: "302 bhp", mileage: "211.2 mpg" },
+        { name: "NX 400h+ F Sport", slug: "nx-400h-plus-f-sport", fuelType: "PLUGIN_HYBRID", transmission: "CVT", seating: 5, exShowroomPrice: 58950, engine: "2.5L Plug-in Hybrid", power: "302 bhp", mileage: "211.2 mpg" },
+      ],
+    },
+    {
+      brandSlug: "suzuki",
+      name: "Swift",
+      slug: "swift",
+      bodyType: "HATCHBACK",
+      segment: "sub-compact",
+      minPrice: 18999,
+      maxPrice: 24999,
+      variants: [
+        { name: "SZ2 1.2 Dualjet", slug: "sz2-1-2-dualjet", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 18999, engine: "1.2L Dualjet", power: "89 bhp", mileage: "56.5 mpg" },
+        { name: "SZ5 1.2 Dualjet Hybrid", slug: "sz5-1-2-dualjet-hybrid", fuelType: "HYBRID", transmission: "MANUAL", seating: 5, exShowroomPrice: 24999, engine: "1.2L Mild Hybrid", power: "89 bhp", mileage: "61.4 mpg" },
+      ],
+    },
+    {
+      brandSlug: "suzuki",
+      name: "Vitara",
+      slug: "vitara",
+      bodyType: "SUV",
+      segment: "compact",
+      minPrice: 24999,
+      maxPrice: 32999,
+      variants: [
+        { name: "SZ4 1.4 Boosterjet", slug: "sz4-1-4-boosterjet", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 24999, engine: "1.4L Turbo Petrol", power: "138 bhp", mileage: "47.9 mpg" },
+        { name: "SZ5 1.4 Boosterjet AllGrip", slug: "sz5-1-4-boosterjet-allgrip", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 32999, engine: "1.4L Turbo Petrol AWD", power: "138 bhp", mileage: "44.8 mpg" },
+      ],
+    },
+    {
+      brandSlug: "nissan",
+      name: "Leaf",
+      slug: "leaf",
+      bodyType: "HATCHBACK",
+      segment: "compact",
+      minPrice: 28995,
+      maxPrice: 36995,
+      variants: [
+        { name: "Acenta 40kWh", slug: "acenta-40kwh", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 28995, engine: "Single Motor Electric", power: "148 bhp", mileage: "168 miles" },
+        { name: "e+ Tekna 59kWh", slug: "e-plus-tekna-59kwh", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 36995, engine: "Single Motor Electric", power: "214 bhp", mileage: "239 miles" },
+      ],
+    },
+    {
+      brandSlug: "nissan",
+      name: "Juke",
+      slug: "juke",
+      bodyType: "SUV",
+      segment: "sub-compact",
+      minPrice: 22995,
+      maxPrice: 31995,
+      variants: [
+        { name: "Visia 1.0 DIG-T", slug: "visia-1-0-dig-t", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 22995, engine: "1.0L Turbo Petrol", power: "116 bhp", mileage: "47.9 mpg" },
+        { name: "N-Connecta 1.0 DIG-T", slug: "n-connecta-1-0-dig-t", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 26995, engine: "1.0L Turbo Petrol", power: "116 bhp", mileage: "47.9 mpg" },
+        { name: "Tekna 1.0 DIG-T", slug: "tekna-1-0-dig-t", fuelType: "PETROL", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 31995, engine: "1.0L Turbo Petrol", power: "116 bhp", mileage: "45.6 mpg" },
+      ],
+    },
+    {
+      brandSlug: "ford",
+      name: "Focus",
+      slug: "focus",
+      bodyType: "HATCHBACK",
+      segment: "compact",
+      minPrice: 26500,
+      maxPrice: 36500,
+      variants: [
+        { name: "Titanium 1.0 EcoBoost", slug: "titanium-1-0-ecoboost", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 26500, engine: "1.0L EcoBoost", power: "123 bhp", mileage: "52.3 mpg" },
+        { name: "ST-Line 1.0 EcoBoost", slug: "st-line-1-0-ecoboost", fuelType: "PETROL", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 30500, engine: "1.0L EcoBoost", power: "153 bhp", mileage: "49.6 mpg" },
+        { name: "ST 2.3 EcoBoost", slug: "st-2-3-ecoboost", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 36500, engine: "2.3L EcoBoost", power: "276 bhp", mileage: "34.9 mpg" },
+      ],
+    },
+    {
+      brandSlug: "vauxhall",
+      name: "Astra",
+      slug: "astra",
+      bodyType: "HATCHBACK",
+      segment: "compact",
+      minPrice: 26500,
+      maxPrice: 38500,
+      variants: [
+        { name: "Design 1.2 Turbo", slug: "design-1-2-turbo", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 26500, engine: "1.2L Turbo Petrol", power: "128 bhp", mileage: "49.6 mpg" },
+        { name: "GS 1.2 Turbo", slug: "gs-1-2-turbo", fuelType: "PETROL", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 31000, engine: "1.2L Turbo Petrol", power: "128 bhp", mileage: "47.9 mpg" },
+        { name: "Ultimate 1.6 PHEV", slug: "ultimate-1-6-phev", fuelType: "PLUGIN_HYBRID", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 38500, engine: "1.6L Plug-in Hybrid", power: "178 bhp", mileage: "235.4 mpg" },
+      ],
+    },
+    {
+      brandSlug: "vauxhall",
+      name: "Mokka",
+      slug: "mokka",
+      bodyType: "SUV",
+      segment: "sub-compact",
+      minPrice: 26995,
+      maxPrice: 38995,
+      variants: [
+        { name: "Design 1.2 Turbo", slug: "design-1-2-turbo", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 26995, engine: "1.2L Turbo Petrol", power: "128 bhp", mileage: "47.9 mpg" },
+        { name: "GS 1.2 Turbo", slug: "gs-1-2-turbo", fuelType: "PETROL", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 31995, engine: "1.2L Turbo Petrol", power: "128 bhp", mileage: "46.3 mpg" },
+        { name: "Electric GS", slug: "electric-gs", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 38995, engine: "Single Motor Electric", power: "134 bhp", mileage: "252 miles" },
+      ],
+    },
+    {
+      brandSlug: "volkswagen",
+      name: "Polo",
+      slug: "polo",
+      bodyType: "HATCHBACK",
+      segment: "sub-compact",
+      minPrice: 21500,
+      maxPrice: 28500,
+      variants: [
+        { name: "Life 1.0 TSI", slug: "life-1-0-tsi", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 21500, engine: "1.0L Turbo Petrol", power: "94 bhp", mileage: "52.3 mpg" },
+        { name: "Style 1.0 TSI", slug: "style-1-0-tsi", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 25500, engine: "1.0L Turbo Petrol", power: "108 bhp", mileage: "51.4 mpg" },
+        { name: "R-Line 1.0 TSI DSG", slug: "r-line-1-0-tsi-dsg", fuelType: "PETROL", transmission: "DCT", seating: 5, exShowroomPrice: 28500, engine: "1.0L Turbo Petrol", power: "108 bhp", mileage: "50.4 mpg" },
+      ],
+    },
+    {
+      brandSlug: "volkswagen",
+      name: "ID.3",
+      slug: "id3",
+      bodyType: "HATCHBACK",
+      segment: "compact",
+      minPrice: 36990,
+      maxPrice: 44990,
+      variants: [
+        { name: "Life Pro", slug: "life-pro", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 36990, engine: "Single Motor Electric", power: "168 bhp", mileage: "266 miles" },
+        { name: "Style Pro", slug: "style-pro", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 40990, engine: "Single Motor Electric", power: "201 bhp", mileage: "266 miles" },
+        { name: "GTX Performance", slug: "gtx-performance", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 44990, engine: "Dual Motor Electric AWD", power: "322 bhp", mileage: "330 miles" },
+      ],
+    },
+    {
+      brandSlug: "audi",
+      name: "A1",
+      slug: "a1",
+      bodyType: "HATCHBACK",
+      segment: "sub-compact",
+      minPrice: 24500,
+      maxPrice: 32000,
+      variants: [
+        { name: "Sport 25 TFSI", slug: "sport-25-tfsi", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 24500, engine: "1.0L Turbo Petrol", power: "94 bhp", mileage: "52.3 mpg" },
+        { name: "S Line 30 TFSI", slug: "s-line-30-tfsi", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 28500, engine: "1.0L Turbo Petrol", power: "108 bhp", mileage: "51.4 mpg" },
+        { name: "Black Edition 35 TFSI S tronic", slug: "black-edition-35-tfsi-s-tronic", fuelType: "PETROL", transmission: "DCT", seating: 5, exShowroomPrice: 32000, engine: "1.5L Turbo Petrol", power: "148 bhp", mileage: "47.9 mpg" },
+      ],
+    },
+    {
+      brandSlug: "mercedes-benz",
+      name: "C-Class",
+      slug: "c-class",
+      bodyType: "SEDAN",
+      segment: "mid-size",
+      minPrice: 42950,
+      maxPrice: 59950,
+      variants: [
+        { name: "C 200 Sport", slug: "c-200-sport", fuelType: "PETROL", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 42950, engine: "1.5L Turbo Petrol", power: "201 bhp", mileage: "44.8 mpg" },
+        { name: "C 300 e AMG Line", slug: "c-300e-amg-line", fuelType: "PLUGIN_HYBRID", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 52950, engine: "2.0L Plug-in Hybrid", power: "308 bhp", mileage: "470.8 mpg" },
+        { name: "C 300 de AMG Line", slug: "c-300de-amg-line", fuelType: "PLUGIN_HYBRID", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 59950, engine: "2.0L Diesel Plug-in Hybrid", power: "302 bhp", mileage: "403.5 mpg" },
+      ],
+    },
+    {
+      brandSlug: "land-rover",
+      name: "Defender",
+      slug: "defender",
+      bodyType: "SUV",
+      segment: "mid-size",
+      minPrice: 54995,
+      maxPrice: 95000,
+      variants: [
+        { name: "90 D250 S", slug: "90-d250-s", fuelType: "DIESEL", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 54995, engine: "2.0L Turbo Diesel", power: "246 bhp", mileage: "32.5 mpg" },
+        { name: "110 P400 SE", slug: "110-p400-se", fuelType: "PETROL", transmission: "AUTOMATIC", seating: 7, exShowroomPrice: 72000, engine: "3.0L Turbo Petrol", power: "395 bhp", mileage: "26.4 mpg" },
+        { name: "110 P510 V8", slug: "110-p510-v8", fuelType: "PETROL", transmission: "AUTOMATIC", seating: 7, exShowroomPrice: 95000, engine: "5.0L V8 Supercharged", power: "518 bhp", mileage: "21.2 mpg" },
+      ],
+    },
+    {
+      brandSlug: "skoda",
+      name: "Kamiq",
+      slug: "kamiq",
+      bodyType: "SUV",
+      segment: "sub-compact",
+      minPrice: 22995,
+      maxPrice: 29995,
+      variants: [
+        { name: "SE 1.0 TSI", slug: "se-1-0-tsi", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 22995, engine: "1.0L Turbo Petrol", power: "108 bhp", mileage: "51.4 mpg" },
+        { name: "SE L 1.5 TSI", slug: "se-l-1-5-tsi", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 26995, engine: "1.5L Turbo Petrol", power: "148 bhp", mileage: "49.6 mpg" },
+        { name: "Monte Carlo 1.5 TSI DSG", slug: "monte-carlo-1-5-tsi-dsg", fuelType: "PETROL", transmission: "DCT", seating: 5, exShowroomPrice: 29995, engine: "1.5L Turbo Petrol", power: "148 bhp", mileage: "47.9 mpg" },
+      ],
+    },
+    {
+      brandSlug: "ds",
+      name: "DS 3",
+      slug: "ds-3",
+      bodyType: "HATCHBACK",
+      segment: "sub-compact",
+      minPrice: 27995,
+      maxPrice: 38995,
+      variants: [
+        { name: "Bastille 1.2 PureTech", slug: "bastille-1-2-puretech", fuelType: "PETROL", transmission: "MANUAL", seating: 5, exShowroomPrice: 27995, engine: "1.2L Turbo Petrol", power: "128 bhp", mileage: "49.6 mpg" },
+        { name: "Performance Line 1.2 PureTech", slug: "performance-line-1-2-puretech", fuelType: "PETROL", transmission: "AUTOMATIC", seating: 5, exShowroomPrice: 32995, engine: "1.2L Turbo Petrol", power: "128 bhp", mileage: "47.9 mpg" },
+        { name: "E-Tense 54kWh", slug: "e-tense-54kwh", fuelType: "ELECTRIC", transmission: "SINGLE_SPEED", seating: 5, exShowroomPrice: 38995, engine: "Single Motor Electric", power: "154 bhp", mileage: "250 miles" },
+      ],
+    },
   ];
 
   for (const m of models) {
     const b = await brand(m.brandSlug);
     const model = await prisma.carModel.upsert({
       where: { brandId_slug: { brandId: b.id, slug: m.slug } },
-      update: { minPrice: m.minPrice, maxPrice: m.maxPrice },
+      update: {
+        minPrice: m.minPrice,
+        maxPrice: m.maxPrice,
+        imageUrl: getImageForBodyType(m.bodyType),
+      },
       create: {
         brandId: b.id,
         name: m.name,
@@ -360,6 +883,7 @@ async function main() {
         segment: m.segment,
         minPrice: m.minPrice,
         maxPrice: m.maxPrice,
+        imageUrl: getImageForBodyType(m.bodyType),
       },
     });
 
@@ -535,6 +1059,7 @@ async function main() {
       name: "Tesla Model 2",
       expectedLaunch: "Q3 2026",
       estimatedPrice: "£25,000 – £32,000",
+      imageUrl: "https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=800&q=80",
       keyHighlights: JSON.stringify([
         "Compact hatchback form factor",
         "Estimated 250+ mile range",
@@ -547,6 +1072,7 @@ async function main() {
       name: "Toyota bZ3X",
       expectedLaunch: "Q1 2027",
       estimatedPrice: "£35,000 – £45,000",
+      imageUrl: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&q=80",
       keyHighlights: JSON.stringify([
         "All-electric SUV on e-TNGA platform",
         "Dual-motor AWD option",
@@ -559,6 +1085,7 @@ async function main() {
       name: "Hyundai IONIQ 7",
       expectedLaunch: "Q2 2026",
       estimatedPrice: "£55,000 – £70,000",
+      imageUrl: "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?w=800&q=80",
       keyHighlights: JSON.stringify([
         "Full-size electric SUV",
         "Three-row seating for 7",
@@ -571,6 +1098,7 @@ async function main() {
       name: "BMW Neue Klasse Saloon",
       expectedLaunch: "Q4 2026",
       estimatedPrice: "£45,000 – £65,000",
+      imageUrl: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&q=80",
       keyHighlights: JSON.stringify([
         "All-new electric architecture",
         "Next-gen iDrive with panoramic display",
@@ -584,6 +1112,11 @@ async function main() {
     const existing = await prisma.upcomingCar.findFirst({ where: { name: uc.name } });
     if (!existing) {
       await prisma.upcomingCar.create({ data: uc });
+    } else if (!existing.imageUrl && "imageUrl" in uc) {
+      await prisma.upcomingCar.update({
+        where: { id: existing.id },
+        data: { imageUrl: (uc as { imageUrl: string }).imageUrl },
+      });
     }
   }
 
@@ -676,7 +1209,7 @@ async function main() {
   }
 
   console.log(
-    "Seed complete: 20 brands, 20 models (60 variants), 2 dealers, 4 upcoming cars, 4 articles, reviews, and test users.",
+    "Seed complete: 30 brands, 55+ models (150+ variants), 2 dealers, 4 upcoming cars, 4 articles, reviews, and test users.",
   );
 }
 

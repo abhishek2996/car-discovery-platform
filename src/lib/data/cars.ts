@@ -192,7 +192,7 @@ export async function getNewlyLaunchedModels(limit = 4) {
   });
 }
 
-/** Electric car models (any variant has ELECTRIC fuel) for home page carousel. */
+/** Electric car models: only variants with ELECTRIC fuel are included so the card shows electric. */
 export async function getElectricModels(limit = 8) {
   return prisma.carModel.findMany({
     where: {
@@ -201,6 +201,36 @@ export async function getElectricModels(limit = 8) {
     include: {
       brand: true,
       variants: {
+        where: { fuelType: "ELECTRIC" },
+        take: 1,
+        orderBy: { exShowroomPrice: "asc" },
+        select: {
+          id: true,
+          name: true,
+          fuelType: true,
+          transmission: true,
+          seating: true,
+        },
+      },
+      _count: { select: { variants: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+}
+
+/** Hybrid car models (HYBRID or PLUGIN_HYBRID): only those variants included so the card shows hybrid. */
+export async function getHybridModels(limit = 8) {
+  return prisma.carModel.findMany({
+    where: {
+      variants: {
+        some: { fuelType: { in: ["HYBRID", "PLUGIN_HYBRID"] } },
+      },
+    },
+    include: {
+      brand: true,
+      variants: {
+        where: { fuelType: { in: ["HYBRID", "PLUGIN_HYBRID"] } },
         take: 1,
         orderBy: { exShowroomPrice: "asc" },
         select: {

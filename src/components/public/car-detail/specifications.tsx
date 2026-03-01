@@ -69,9 +69,9 @@ function SpecTable({ specs, variants }: { specs: SpecRow[]; variants: Variant[] 
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[180px] bg-muted/50">Specification</TableHead>
+            <TableHead className="w-[180px] bg-muted/50">Variants</TableHead>
             {variants.map((v) => (
-              <TableHead key={v.id} className="min-w-[150px] bg-muted/50 text-center">
+              <TableHead key={v.id} className="min-w-[150px] bg-muted/50 !text-center">
                 {v.name}
               </TableHead>
             ))}

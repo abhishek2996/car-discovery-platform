@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { toast } from "sonner";
 import { BODY_TYPE_LABELS } from "@/lib/constants";
 import type { ActionResult } from "@/lib/types";
@@ -33,12 +34,25 @@ interface ModelFormProps {
     minPrice: number | null;
     maxPrice: number | null;
     imageUrl: string | null;
+    imageUrls?: string | null; // JSON array string
   };
 }
 
 export function ModelForm({ action, brands, defaultValues }: ModelFormProps) {
   const router = useRouter();
   const [state, formAction, isPending] = useActionState(action, null);
+  const [imageUrls, setImageUrls] = useState<string[]>(() => {
+    if (defaultValues?.imageUrls) {
+      try {
+        const arr = JSON.parse(defaultValues.imageUrls) as unknown;
+        return Array.isArray(arr) ? arr.filter((u): u is string => typeof u === "string") : [];
+      } catch {
+        return [];
+      }
+    }
+    if (defaultValues?.imageUrl) return [defaultValues.imageUrl];
+    return [];
+  });
 
   useEffect(() => {
     if (state?.success) {
@@ -164,17 +178,14 @@ export function ModelForm({ action, brands, defaultValues }: ModelFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="imageUrl">Image URL</Label>
-        <Input
-          id="imageUrl"
-          name="imageUrl"
-          type="url"
-          placeholder="https://..."
-          defaultValue={defaultValues?.imageUrl ?? ""}
+        <ImageUpload
+          endpoint="carModelGallery"
+          value={imageUrls}
+          onChange={setImageUrls}
+          maxFiles={100}
+          label="Model images (upload as many as you need)"
         />
-        {state?.errors?.imageUrl && (
-          <p className="text-xs text-destructive">{state.errors.imageUrl[0]}</p>
-        )}
+        <input type="hidden" name="imageUrls" value={JSON.stringify(imageUrls)} />
       </div>
 
       <div className="flex items-center gap-3">

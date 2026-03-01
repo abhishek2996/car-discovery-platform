@@ -225,6 +225,7 @@ model CarModel {
   minPrice    Decimal?  @db.Decimal(12, 2)
   maxPrice    Decimal?  @db.Decimal(12, 2)
   imageUrl    String?
+  imageUrls   String?   @db.Text // JSON array of image URLs (Uploadthing or external)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

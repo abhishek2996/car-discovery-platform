@@ -71,7 +71,7 @@ export function CarCard({ car, showGetOffersButton = false }: CarCardProps) {
         )}
       </div>
 
-      <CardContent className="flex flex-1 flex-col space-y-3 p-4">
+      <CardContent className="flex flex-1 flex-col space-y-2 px-4 py-2.5">
         {/* Title */}
         <div>
           <p className="text-xs font-medium text-muted-foreground">
@@ -119,7 +119,7 @@ export function CarCard({ car, showGetOffersButton = false }: CarCardProps) {
         {showGetOffersButton && (
           <Link
             href={href}
-            className="mt-auto inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 pt-2"
+            className="mt-auto inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Get offers
           </Link>

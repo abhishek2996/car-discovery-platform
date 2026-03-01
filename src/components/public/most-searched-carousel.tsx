@@ -140,7 +140,7 @@ export function MostSearchedCarousel({ tabs, carsByTab }: MostSearchedCarouselPr
         </div>
         <div
           ref={scrollRef}
-          className="flex flex-1 gap-4 overflow-x-auto scroll-smooth pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex flex-1 gap-4 overflow-x-auto scroll-smooth pb-2 pr-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {cars.map((car) => (
             <div

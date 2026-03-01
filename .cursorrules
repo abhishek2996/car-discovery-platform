@@ -207,6 +207,31 @@
     - [X] Car images, dealer showroom media, article hero images
     - [X] Safe file type/size validation and cleanup strategy
 
+- [ ] Test Auth Flows End to End
+
+ - [ ]New user can sign up with email/password and is created in the database with BUYER role
+ - [ ]Existing user can sign in with Google OAuth
+ - [ ]Existing user can sign in with Facebook OAuth
+ - [ ]BUYER cannot access /dealer/* or /admin/* — redirected to /unauthorised
+ - [ ]DEALER can access /dealer/* but not /admin/*
+- [ ] ADMIN can access both /dealer/* and /admin/*
+ - [ ]Clerk webhook correctly creates user in Neon database on sign up
+ - [ ]Admin can promote a BUYER to DEALER role via the user management page
+ - [ ]<UserButton /> displays correctly in header on all pages
+- [ ] Sign out clears session and redirects to homepage
+
+
+- [ ]Final Checks After All Three Migrations
+
+ - [ ]npm run build passes with zero errors
+ - [ ]No remaining references to uploadthing, next-auth, or old session logic anywhere in the codebase — run a global search for each
+ - [ ]All environment variables for removed services deleted from Vercel
+ - [ ]All new environment variables (R2, Clerk) added to Vercel production environment
+ - [ ]Image upload tested end to end: upload → stored in R2 → CDN URL saved in DB → displayed in listing
+ - [ ]Auth tested end to end: sign up → webhook → DB record → role assigned → correct route access
+ - [ ]Old Uploadthing files in their storage deleted after confirming all images migrated to R2
+ - [ ].env.example updated to reflect the new stack with all old variables removed and new ones added
+
 - [ ] Phase 7 – Testing, performance, and deployment
   - [ ] Automated testing
     - [ ] Unit tests for core domain logic and Zod schemas

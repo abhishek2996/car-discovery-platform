@@ -116,11 +116,12 @@ export function HomeCarouselSection({
         <div className="relative flex-1 min-w-0">
           <div
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto pb-2 scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-4 overflow-x-auto pb-2 pl-0 pr-4 scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {children}
           </div>
-          <div className="pointer-events-none absolute right-0 top-0 flex h-full w-12 items-center justify-end bg-gradient-to-l from-background to-transparent" />
+          {/* Light gradient only at edge so last card stays fully visible; arrow is main affordance */}
+          <div className="pointer-events-none absolute right-0 top-0 flex h-full w-8 items-center justify-end bg-gradient-to-l from-background/80 to-transparent" />
         </div>
         <div className="flex shrink-0 items-center">
           <button

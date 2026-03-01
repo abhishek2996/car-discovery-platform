@@ -9,7 +9,7 @@ import { CarCard } from "@/components/public/car-card";
 import { ArticleStoryCard } from "@/components/public/article-story-card";
 import { getPopularBrands } from "@/lib/data/brands";
 import { getActiveHeroSlides } from "@/lib/data/admin-dashboard";
-import { getPopularModels, getNewlyLaunchedModels, getElectricModels, getPopularModelsByBodyType } from "@/lib/data/cars";
+import { getPopularModels, getNewlyLaunchedModels, getElectricModels, getHybridModels, getPopularModelsByBodyType } from "@/lib/data/cars";
 import { searchUpcomingCars } from "@/lib/data/upcoming";
 import { searchArticles } from "@/lib/data/content";
 import { BODY_TYPE_LABELS } from "@/lib/constants";
@@ -144,6 +144,56 @@ async function ElectricCarsSection() {
   }
 }
 
+async function HybridCarsSection() {
+  try {
+    const cars = await getHybridModels(8);
+    return (
+      <HomeCarouselSection
+        title="Hybrid cars"
+        viewAllHref="/new-cars?fuel=HYBRID"
+        viewAllLabel="View All Hybrid Cars"
+        className="border-t"
+      >
+        {cars.length === 0 ? (
+          <div className="flex shrink-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 px-8 py-12 text-sm text-muted-foreground w-[280px] sm:w-[300px]">
+            No hybrid cars in this category yet
+          </div>
+        ) : (
+          cars.map((car) => (
+            <div
+              key={car.id}
+              className="flex shrink-0 flex-col sm:w-[300px] w-[280px]"
+              style={{ minHeight: 360 }}
+            >
+              <CarCard
+                car={{
+                  ...car,
+                  minPrice: car.minPrice ? String(car.minPrice) : null,
+                  maxPrice: car.maxPrice ? String(car.maxPrice) : null,
+                }}
+                showGetOffersButton
+              />
+            </div>
+          ))
+        )}
+      </HomeCarouselSection>
+    );
+  } catch {
+    return (
+      <HomeCarouselSection
+        title="Hybrid cars"
+        viewAllHref="/new-cars?fuel=HYBRID"
+        viewAllLabel="View All Hybrid Cars"
+        className="border-t"
+      >
+        <div className="flex shrink-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 px-8 py-12 text-sm text-muted-foreground w-[280px] sm:w-[300px]">
+          No hybrid cars in this category yet
+        </div>
+      </HomeCarouselSection>
+    );
+  }
+}
+
 async function UpcomingCarsSection() {
   try {
     const { cars } = await searchUpcomingCars({ pageSize: 8 });
@@ -221,6 +271,7 @@ async function LatestCarsSection() {
         title="Latest cars"
         viewAllHref="/new-cars?sort=newest"
         viewAllLabel="View All Latest Cars"
+        className="border-t"
       >
         {cars.length === 0 ? (
           <div className="flex shrink-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 px-8 py-12 text-sm text-muted-foreground w-[280px] sm:w-[300px]">
@@ -262,6 +313,7 @@ async function LatestCarsSection() {
         title="Latest cars"
         viewAllHref="/new-cars?sort=newest"
         viewAllLabel="View All Latest Cars"
+        className="border-t"
       >
         <div className="flex shrink-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 px-8 py-12 text-sm text-muted-foreground w-[280px] sm:w-[300px]">
           No latest cars to show yet
@@ -410,6 +462,10 @@ export default function HomePage() {
 
       <Suspense fallback={<CarouselSkeleton />}>
         <ElectricCarsSection />
+      </Suspense>
+
+      <Suspense fallback={<CarouselSkeleton />}>
+        <HybridCarsSection />
       </Suspense>
 
       <Suspense fallback={<CarouselSkeleton />}>

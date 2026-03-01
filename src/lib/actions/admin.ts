@@ -59,6 +59,18 @@ export async function createModel(_prev: ActionResult | null, formData: FormData
   const parsed = carModelSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return { success: false, message: "Validation failed.", errors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
 
+  const imageUrlsRaw = parsed.data.imageUrls?.trim();
+  let imageUrlsArr: string[] = [];
+  if (imageUrlsRaw) {
+    try {
+      const arr = JSON.parse(imageUrlsRaw) as unknown;
+      imageUrlsArr = Array.isArray(arr) ? arr.filter((u): u is string => typeof u === "string") : [];
+    } catch {
+      imageUrlsArr = [];
+    }
+  }
+  const primaryUrl = imageUrlsArr[0] ?? (parsed.data.imageUrl || null);
+
   await prisma.carModel.create({
     data: {
       brandId: parsed.data.brandId,
@@ -68,7 +80,8 @@ export async function createModel(_prev: ActionResult | null, formData: FormData
       segment: parsed.data.segment || null,
       minPrice: parsed.data.minPrice ?? null,
       maxPrice: parsed.data.maxPrice ?? null,
-      imageUrl: parsed.data.imageUrl || null,
+      imageUrl: primaryUrl,
+      imageUrls: imageUrlsArr.length > 0 ? JSON.stringify(imageUrlsArr) : null,
     },
   });
   revalidatePath("/admin/catalog");
@@ -80,6 +93,18 @@ export async function updateModel(id: string, _prev: ActionResult | null, formDa
   const parsed = carModelSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return { success: false, message: "Validation failed.", errors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
 
+  const imageUrlsRaw = parsed.data.imageUrls?.trim();
+  let imageUrlsArr: string[] = [];
+  if (imageUrlsRaw) {
+    try {
+      const arr = JSON.parse(imageUrlsRaw) as unknown;
+      imageUrlsArr = Array.isArray(arr) ? arr.filter((u): u is string => typeof u === "string") : [];
+    } catch {
+      imageUrlsArr = [];
+    }
+  }
+  const primaryUrl = imageUrlsArr[0] ?? (parsed.data.imageUrl || null);
+
   await prisma.carModel.update({
     where: { id },
     data: {
@@ -90,7 +115,8 @@ export async function updateModel(id: string, _prev: ActionResult | null, formDa
       segment: parsed.data.segment || null,
       minPrice: parsed.data.minPrice ?? null,
       maxPrice: parsed.data.maxPrice ?? null,
-      imageUrl: parsed.data.imageUrl || null,
+      imageUrl: primaryUrl,
+      imageUrls: imageUrlsArr.length > 0 ? JSON.stringify(imageUrlsArr) : null,
     },
   });
   revalidatePath("/admin/catalog");

@@ -22,6 +22,22 @@ export const uploadRouter = {
       return { url: f.url };
     }),
 
+  carModelGallery: f({
+    image: { maxFileSize: "4MB", maxFileCount: 50 },
+  })
+    .middleware(async () => {
+      const session = await auth();
+      if (!session?.user?.id) throw new Error("Unauthorized");
+      const role = (session.user as { role?: string }).role;
+      if (role !== "ADMIN") throw new Error("Forbidden");
+      return { userId: session.user.id };
+    })
+    .onUploadComplete(({ metadata, file }) => {
+      const f = file as unknown as FileData;
+      console.log("[upload] carModelGallery by", metadata.userId, f.url);
+      return { url: f.url };
+    }),
+
   dealerMedia: f({
     image: { maxFileSize: "4MB", maxFileCount: 5 },
   })

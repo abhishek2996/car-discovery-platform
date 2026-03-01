@@ -32,6 +32,7 @@ export const carModelSchema = z.object({
   minPrice: z.coerce.number().nonnegative().optional(),
   maxPrice: z.coerce.number().nonnegative().optional(),
   imageUrl: z.string().url().optional().or(z.literal("")),
+  imageUrls: z.string().optional().or(z.literal("")), // JSON array of URLs
 });
 export type CarModelFormValues = z.infer<typeof carModelSchema>;
 
