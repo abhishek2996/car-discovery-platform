@@ -137,9 +137,67 @@ export async function getPopularModels(limit = 12) {
   });
 }
 
+/** Popular models by body type for "most searched" tabs; up to 10 per category. */
+export async function getPopularModelsByBodyType(
+  bodyType: string | null,
+  limit = 10
+) {
+  const orderBy = buildOrderBy("popularity");
+  const where: Prisma.CarModelWhereInput = {};
+  if (bodyType) {
+    where.bodyType = bodyType as BodyType;
+  }
+  return prisma.carModel.findMany({
+    where,
+    include: {
+      brand: true,
+      variants: {
+        take: 1,
+        orderBy: { exShowroomPrice: "asc" },
+        select: {
+          id: true,
+          name: true,
+          fuelType: true,
+          transmission: true,
+          seating: true,
+        },
+      },
+      _count: { select: { variants: true } },
+    },
+    orderBy,
+    take: limit,
+  });
+}
+
 /** Newly launched models for hero carousel (newest first, e.g. by createdAt). */
 export async function getNewlyLaunchedModels(limit = 4) {
   return prisma.carModel.findMany({
+    include: {
+      brand: true,
+      variants: {
+        take: 1,
+        orderBy: { exShowroomPrice: "asc" },
+        select: {
+          id: true,
+          name: true,
+          fuelType: true,
+          transmission: true,
+          seating: true,
+        },
+      },
+      _count: { select: { variants: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+  });
+}
+
+/** Electric car models (any variant has ELECTRIC fuel) for home page carousel. */
+export async function getElectricModels(limit = 8) {
+  return prisma.carModel.findMany({
+    where: {
+      variants: { some: { fuelType: "ELECTRIC" } },
+    },
     include: {
       brand: true,
       variants: {

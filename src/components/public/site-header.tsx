@@ -18,6 +18,8 @@ import {
   LogOut,
   LayoutDashboard,
   Heart,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,36 +45,86 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CitySelector } from "@/components/public/city-selector";
+import { AuthModal } from "@/components/public/auth-modal";
 import { cn } from "@/lib/utils";
 
-const NAV_LINKS = [
-  { href: "/new-cars", label: "New Cars", icon: Car },
-  { href: "/brands", label: "Brands", icon: Car },
-  { href: "/compare", label: "Compare", icon: GitCompareArrows },
-  { href: "/upcoming", label: "Upcoming", icon: Clock },
-  { href: "/reviews", label: "Reviews", icon: Star },
-  { href: "/dealers", label: "Dealers", icon: Store },
+/** Desktop nav: 3 tabs with hover dropdowns. Other links (Dealers etc.) folded into dropdowns or top bar. */
+const NAV_DROPDOWNS = [
+  {
+    key: "new-cars",
+    label: "NEW CARS",
+    items: [
+      { label: "Explore New Cars", href: "/new-cars" },
+      { label: "Electric Cars", href: "/new-cars?fuel=Electric" },
+      { label: "Popular Cars", href: "/new-cars", submenu: true },
+      { label: "Upcoming Cars", href: "/upcoming" },
+      { label: "New Launches", href: "/new-cars" },
+      { label: "Popular Brands", href: "/brands", submenu: true },
+      { label: "Compare Cars", href: "/compare" },
+      { label: "Find Dealers", href: "/dealers" },
+    ],
+  },
+  {
+    key: "news-reviews",
+    label: "NEWS & REVIEWS",
+    items: [
+      { label: "News & Top stories", href: "/reviews" },
+      { label: "Car Expert Reviews", href: "/reviews" },
+      { label: "User Reviews", href: "/reviews" },
+      { label: "Car Collection", href: "/reviews" },
+      { label: "Tips & Advice", href: "/reviews" },
+    ],
+  },
+  {
+    key: "videos",
+    label: "VIDEOS",
+    items: [
+      { label: "Video Reviews", href: "/reviews" },
+      { label: "Visual Stories", href: "/reviews" },
+    ],
+  },
 ] as const;
 
-function NavLink({
-  href,
-  label,
-  active,
+function NavDropdown({
+  section,
+  pathname,
 }: {
-  href: string;
-  label: string;
-  active: boolean;
+  section: (typeof NAV_DROPDOWNS)[number];
+  pathname: string;
 }) {
+  const isActive =
+    section.key === "new-cars"
+      ? pathname === "/new-cars" || pathname.startsWith("/new-cars/") || pathname === "/upcoming" || pathname === "/compare" || pathname === "/brands" || pathname === "/dealers"
+      : section.key === "news-reviews"
+        ? pathname === "/reviews" || pathname.startsWith("/reviews/")
+        : pathname === "/reviews";
+
   return (
-    <Link
-      href={href}
-      className={cn(
-        "px-4 py-3 text-sm font-medium transition-colors hover:text-primary border-b-2 border-transparent hover:border-primary/50",
-        active ? "text-primary border-primary" : "text-muted-foreground",
-      )}
-    >
-      {label}
-    </Link>
+    <div className="group relative">
+      <div
+        className={cn(
+          "flex cursor-pointer items-center gap-1 border-b-2 px-4 py-3 text-sm font-medium transition-colors hover:text-primary hover:border-primary/50",
+          isActive ? "border-primary text-primary" : "border-transparent text-muted-foreground",
+        )}
+      >
+        <span>{section.label}</span>
+        <ChevronDown className="size-4" />
+      </div>
+      <div className="invisible absolute left-0 top-full z-50 min-w-[220px] pt-0 opacity-0 transition-[visibility,opacity] duration-150 group-hover:visible group-hover:opacity-100">
+        <div className="rounded-md border bg-background py-1 shadow-lg">
+          {section.items.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className="flex items-center justify-between px-4 py-2 text-sm text-foreground hover:bg-accent hover:text-accent-foreground"
+            >
+              {item.label}
+              {item.submenu && <ChevronRight className="size-4 text-muted-foreground" />}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -80,6 +132,7 @@ export function SiteHeader() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -136,7 +189,7 @@ export function SiteHeader() {
               <Heart className="size-4" />
             </Link>
           </Button>
-          <AuthButtons />
+          <AuthButtons onAuthModalOpenChange={setAuthModalOpen} />
           <div className="hidden sm:block">
             <CitySelector />
           </div>
@@ -162,44 +215,48 @@ export function SiteHeader() {
                 <div className="mb-4 px-2">
                   <CitySelector />
                 </div>
-                {NAV_LINKS.map((link) => {
-                  const Icon = link.icon;
-                  const active = pathname === link.href || pathname.startsWith(link.href + "/");
-                  return (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={() => setMobileOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                        active
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                      )}
-                    >
-                      <Icon className="size-4" />
-                      {link.label}
-                    </Link>
-                  );
-                })}
-                <MobileAuthLinks onClose={() => setMobileOpen(false)} />
+                {NAV_DROPDOWNS.map((section) => (
+                  <div key={section.key} className="mb-4">
+                    <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {section.label}
+                    </p>
+                    <div className="flex flex-col gap-0.5">
+                      {section.items.map((item) => {
+                        const active =
+                          pathname === item.href ||
+                          (item.href !== "/" && pathname.startsWith(item.href));
+                        return (
+                          <Link
+                            key={item.label}
+                            href={item.href}
+                            onClick={() => setMobileOpen(false)}
+                            className={cn(
+                              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                              active
+                                ? "bg-primary/10 text-primary"
+                                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                            )}
+                          >
+                            {item.label}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+                <MobileAuthLinks onClose={() => setMobileOpen(false)} onOpenAuthModal={() => { setMobileOpen(false); setAuthModalOpen(true); }} />
               </div>
             </SheetContent>
           </Sheet>
         </div>
       </div>
 
-      {/* Second row: main nav */}
+      {/* Second row: main nav with hover dropdowns */}
       <div className="border-t border-border/50">
         <div className="mx-auto flex max-w-7xl items-center px-4 sm:px-6 lg:px-8">
           <nav className="hidden items-center gap-1 md:flex">
-            {NAV_LINKS.map((link) => (
-              <NavLink
-                key={link.href}
-                href={link.href}
-                label={link.label}
-                active={pathname === link.href || pathname.startsWith(link.href + "/")}
-              />
+            {NAV_DROPDOWNS.map((section) => (
+              <NavDropdown key={section.key} section={section} pathname={pathname} />
             ))}
           </nav>
         </div>
@@ -216,11 +273,16 @@ export function SiteHeader() {
           </form>
         </div>
       )}
+      <AuthModal
+        open={authModalOpen}
+        onOpenChange={setAuthModalOpen}
+        callbackUrl={pathname || "/"}
+      />
     </header>
   );
 }
 
-function AuthButtons() {
+function AuthButtons({ onAuthModalOpenChange }: { onAuthModalOpenChange: (open: boolean) => void }) {
   const { data: session, status } = useSession();
 
   if (status === "loading") {
@@ -230,11 +292,16 @@ function AuthButtons() {
   if (!session?.user) {
     return (
       <div className="hidden items-center gap-3 md:flex">
-        <Button asChild variant="ghost" size="sm" className="text-muted-foreground font-normal">
-          <Link href="/login">Login / Register</Link>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground font-normal"
+          onClick={() => onAuthModalOpenChange(true)}
+        >
+          Login / Register
         </Button>
         <Button asChild size="sm" className="bg-orange-500 hover:bg-orange-600">
-          <Link href="/dealer-signup">Become a Dealer</Link>
+          <Link href="/dealer-signup">Dealer Sign up</Link>
         </Button>
       </div>
     );
@@ -274,28 +341,28 @@ function AuthButtons() {
   );
 }
 
-function MobileAuthLinks({ onClose }: { onClose: () => void }) {
+function MobileAuthLinks({ onClose, onOpenAuthModal }: { onClose: () => void; onOpenAuthModal?: () => void }) {
   const { data: session } = useSession();
 
   if (!session?.user) {
     return (
       <>
         <div className="my-2 border-t" />
-        <Link
-          href="/login"
-          onClick={onClose}
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+        <button
+          type="button"
+          onClick={() => { onClose(); onOpenAuthModal?.(); }}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         >
           <LogIn className="size-4" />
           Sign in
-        </Link>
+        </button>
         <Link
           href="/dealer-signup"
           onClick={onClose}
           className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10"
         >
           <Store className="size-4" />
-          Become a Dealer
+          Dealer Sign up
         </Link>
       </>
     );

@@ -1,15 +1,17 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { ArrowRight, Car, Shield, GitCompareArrows, Star, Clock, Search } from "lucide-react";
+import { ArrowRight, Car, Shield, GitCompareArrows, Star, Clock } from "lucide-react";
 import { HomeHero } from "@/components/public/home-hero";
-import { NewlyLaunchedCarousel } from "@/components/public/newly-launched-carousel";
-import { BrandGrid } from "@/components/public/brand-grid";
+import { HomeCarouselSection } from "@/components/public/home-carousel-section";
+import { MostSearchedCarousel } from "@/components/public/most-searched-carousel";
+import type { MostSearchedCar, MostSearchedTab } from "@/components/public/most-searched-carousel";
 import { CarCard } from "@/components/public/car-card";
+import { ArticleStoryCard } from "@/components/public/article-story-card";
 import { getPopularBrands } from "@/lib/data/brands";
 import { getActiveHeroSlides } from "@/lib/data/admin-dashboard";
-import { getPopularModels } from "@/lib/data/cars";
-import { getNewlyLaunchedModels } from "@/lib/data/cars";
+import { getPopularModels, getNewlyLaunchedModels, getElectricModels, getPopularModelsByBodyType } from "@/lib/data/cars";
 import { searchUpcomingCars } from "@/lib/data/upcoming";
+import { searchArticles } from "@/lib/data/content";
 import { BODY_TYPE_LABELS } from "@/lib/constants";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -54,102 +56,131 @@ async function HomeHeroSection() {
   }
 }
 
-async function NewlyLaunchedSection() {
+async function MostSearchedSection() {
+  // "All" first, then every body type from constants so all categories are visible (scroll the tab row)
+  const bodyEntries = Object.entries(BODY_TYPE_LABELS);
+  const tabs: MostSearchedTab[] = [
+    { key: "ALL", label: "All" },
+    ...bodyEntries.map(([key, label]) => ({ key, label })),
+  ];
+  const tabKeys = tabs.map((t) => t.key);
+
   try {
-    const newlyLaunched = await getNewlyLaunchedModels(4);
-    return (
-      <NewlyLaunchedCarousel
-        cars={newlyLaunched.map((car) => ({
-          id: car.id,
-          name: car.name,
-          slug: car.slug,
-          bodyType: car.bodyType,
-          segment: car.segment,
-          minPrice: car.minPrice != null ? String(car.minPrice) : null,
-          maxPrice: car.maxPrice != null ? String(car.maxPrice) : null,
-          imageUrl: car.imageUrl,
-          createdAt: car.createdAt,
-          updatedAt: car.updatedAt,
-          brand: car.brand,
-          variants: car.variants,
-          _count: car._count,
-        }))}
-      />
-    );
+    const [allCars, ...bodyResults] = await Promise.all([
+      getPopularModels(10),
+      ...bodyEntries.map(([key]) => getPopularModelsByBodyType(key, 10)),
+    ]);
+
+    const toSerializable = (list: Awaited<ReturnType<typeof getPopularModelsByBodyType>>): MostSearchedCar[] =>
+      list.map((car) => ({
+        ...car,
+        minPrice: car.minPrice != null ? Number(car.minPrice) : null,
+        maxPrice: car.maxPrice != null ? Number(car.maxPrice) : null,
+      }));
+
+    const carsByTab: Record<string, MostSearchedCar[]> = {
+      ALL: toSerializable(allCars),
+    };
+    bodyEntries.forEach(([key], i) => {
+      carsByTab[key] = toSerializable(bodyResults[i]);
+    });
+
+    const hasAny = tabKeys.some((k) => (carsByTab[k]?.length ?? 0) > 0);
+    if (!hasAny) return null;
+
+    return <MostSearchedCarousel tabs={tabs} carsByTab={carsByTab} />;
   } catch {
     return null;
   }
 }
 
-async function PopularCarsSection() {
+async function ElectricCarsSection() {
   try {
-    const popularCars = await getPopularModels(12);
-    if (popularCars.length === 0) return null;
+    const cars = await getElectricModels(8);
     return (
-      <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold tracking-tight">Popular new cars</h2>
-          <Link
-            href="/new-cars"
-            className="text-sm font-medium text-primary hover:underline"
-          >
-            View all new cars
-          </Link>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {popularCars.map((car) => (
-            <CarCard
-              key={car.id}
-              car={{
-                ...car,
-                minPrice: car.minPrice ? String(car.minPrice) : null,
-                maxPrice: car.maxPrice ? String(car.maxPrice) : null,
-              }}
-            />
-          ))}
-        </div>
-      </section>
-    );
-  } catch {
-    return null;
-  }
-}
-
-async function BrandsSection() {
-  try {
-    const brands = await getPopularBrands(12);
-    return <BrandGrid brands={brands} title="Popular Brands" showViewAll />;
-  } catch {
-    return <BrandGrid brands={[]} title="Popular Brands" showViewAll />;
-  }
-}
-
-async function UpcomingSection() {
-  try {
-    const upcomingResult = await searchUpcomingCars({ pageSize: 4 });
-    if (upcomingResult.cars.length === 0) return null;
-    return (
-      <section className="border-t bg-muted/20 py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-2xl font-bold tracking-tight">Upcoming cars</h2>
-            <Link
-              href="/upcoming"
-              className="text-sm font-medium text-primary hover:underline"
-            >
-              View all upcoming
-            </Link>
+      <HomeCarouselSection
+        title="Electric cars"
+        viewAllHref="/new-cars?fuel=ELECTRIC"
+        viewAllLabel="View All Electric Cars"
+        className="border-t bg-muted/20"
+      >
+        {cars.length === 0 ? (
+          <div className="flex shrink-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 px-8 py-12 text-sm text-muted-foreground w-[280px] sm:w-[300px]">
+            No electric cars in this category yet
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {upcomingResult.cars.map((uc) => (
-              <Link
-                key={uc.id}
-                href={`/upcoming/${uc.id}`}
-                className="group rounded-xl border bg-card p-4 transition-all hover:shadow-md hover:border-primary/20"
-              >
-                <p className="text-xs font-medium text-muted-foreground">
-                  {uc.brand.name}
-                </p>
+        ) : (
+          cars.map((car) => (
+            <div
+              key={car.id}
+              className="flex shrink-0 flex-col sm:w-[300px] w-[280px]"
+              style={{ minHeight: 360 }}
+            >
+              <CarCard
+                car={{
+                  ...car,
+                  minPrice: car.minPrice ? String(car.minPrice) : null,
+                  maxPrice: car.maxPrice ? String(car.maxPrice) : null,
+                }}
+                showGetOffersButton
+              />
+            </div>
+          ))
+        )}
+      </HomeCarouselSection>
+    );
+  } catch {
+    return (
+      <HomeCarouselSection
+        title="Electric cars"
+        viewAllHref="/new-cars?fuel=ELECTRIC"
+        viewAllLabel="View All Electric Cars"
+        className="border-t bg-muted/20"
+      >
+        <div className="flex shrink-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 px-8 py-12 text-sm text-muted-foreground w-[280px] sm:w-[300px]">
+          No electric cars in this category yet
+        </div>
+      </HomeCarouselSection>
+    );
+  }
+}
+
+async function UpcomingCarsSection() {
+  try {
+    const { cars } = await searchUpcomingCars({ pageSize: 8 });
+    return (
+      <HomeCarouselSection
+        title="Upcoming cars"
+        viewAllHref="/upcoming"
+        viewAllLabel="View All Upcoming Cars"
+        className="border-t"
+      >
+        {cars.length === 0 ? (
+          <div className="flex shrink-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 px-8 py-12 text-sm text-muted-foreground w-[260px] sm:w-[280px]">
+            No upcoming cars at the moment
+          </div>
+        ) : (
+          cars.map((uc) => (
+            <Link
+              key={uc.id}
+              href={`/upcoming/${uc.id}`}
+              className="group flex shrink-0 w-[260px] flex-col rounded-xl border bg-card transition-all hover:shadow-md hover:border-primary/20 sm:w-[280px]"
+            >
+              <div className="relative aspect-[16/10] bg-muted">
+                {uc.imageUrl ? (
+                  <img
+                    src={uc.imageUrl}
+                    alt={uc.model?.name ?? uc.name}
+                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                  />
+                ) : null}
+                {uc.expectedLaunch && (
+                  <span className="absolute left-2 top-2 rounded bg-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground">
+                    Expected launch {uc.expectedLaunch}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-1 flex-col p-4">
+                <p className="text-xs font-medium text-muted-foreground">{uc.brand.name}</p>
                 <p className="mt-1 font-semibold group-hover:text-primary">
                   {uc.model?.name ?? uc.name}
                 </p>
@@ -160,28 +191,207 @@ async function UpcomingSection() {
                   <Clock className="size-3" />
                   Alert me when launched
                 </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+              </div>
+            </Link>
+          ))
+        )}
+      </HomeCarouselSection>
     );
   } catch {
-    return null;
+    return (
+      <HomeCarouselSection
+        title="Upcoming cars"
+        viewAllHref="/upcoming"
+        viewAllLabel="View All Upcoming Cars"
+        className="border-t"
+      >
+        <div className="flex shrink-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 px-8 py-12 text-sm text-muted-foreground w-[260px] sm:w-[280px]">
+          No upcoming cars at the moment
+        </div>
+      </HomeCarouselSection>
+    );
   }
 }
 
-function PopularCarsSkeleton() {
+async function LatestCarsSection() {
+  try {
+    const cars = await getNewlyLaunchedModels(8);
+    return (
+      <HomeCarouselSection
+        title="Latest cars"
+        viewAllHref="/new-cars?sort=newest"
+        viewAllLabel="View All Latest Cars"
+      >
+        {cars.length === 0 ? (
+          <div className="flex shrink-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 px-8 py-12 text-sm text-muted-foreground w-[280px] sm:w-[300px]">
+            No latest cars to show yet
+          </div>
+        ) : (
+          cars.map((car) => (
+            <div
+              key={car.id}
+              className="relative flex shrink-0 flex-col sm:w-[300px] w-[280px]"
+              style={{ minHeight: 360 }}
+            >
+              <CarCard
+                car={{
+                  ...car,
+                  minPrice: car.minPrice ? String(car.minPrice) : null,
+                  maxPrice: car.maxPrice ? String(car.maxPrice) : null,
+                }}
+                showGetOffersButton
+              />
+              {car.createdAt && (
+                <span className="absolute left-2 top-2 z-10 rounded bg-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground">
+                  Launched on{" "}
+                  {new Date(car.createdAt).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </span>
+              )}
+            </div>
+          ))
+        )}
+      </HomeCarouselSection>
+    );
+  } catch {
+    return (
+      <HomeCarouselSection
+        title="Latest cars"
+        viewAllHref="/new-cars?sort=newest"
+        viewAllLabel="View All Latest Cars"
+      >
+        <div className="flex shrink-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 px-8 py-12 text-sm text-muted-foreground w-[280px] sm:w-[300px]">
+          No latest cars to show yet
+        </div>
+      </HomeCarouselSection>
+    );
+  }
+}
+
+async function PopularBrandsCarouselSection() {
+  try {
+    const brands = await getPopularBrands(12);
+
+    function BrandInitial({ name }: { name: string }) {
+      const initials = name
+        .split(/[\s-]+/)
+        .slice(0, 2)
+        .map((w) => w[0])
+        .join("")
+        .toUpperCase();
+      return (
+        <div className="flex size-14 items-center justify-center rounded-xl bg-primary/10 text-lg font-bold text-primary">
+          {initials}
+        </div>
+      );
+    }
+
+    return (
+      <HomeCarouselSection
+        title="Popular brands"
+        viewAllHref="/brands"
+        viewAllLabel="View All Brands"
+        className="border-t bg-muted/20"
+      >
+        {brands.length === 0 ? (
+          <div className="flex shrink-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 px-8 py-12 text-sm text-muted-foreground w-[140px] sm:w-[160px]">
+            No brands yet
+          </div>
+        ) : (
+          brands.map((brand) => (
+            <Link
+              key={brand.id}
+              href={`/new-cars?brand=${brand.slug}`}
+              className="group flex shrink-0 w-[140px] flex-col items-center gap-3 rounded-xl border bg-card p-4 transition-all hover:shadow-md hover:border-primary/20 sm:w-[160px]"
+            >
+              {brand.logoUrl ? (
+                <img
+                  src={brand.logoUrl}
+                  alt={brand.name}
+                  className="size-14 object-contain"
+                />
+              ) : (
+                <BrandInitial name={brand.name} />
+              )}
+              <p className="text-center text-sm font-semibold group-hover:text-primary">{brand.name}</p>
+            </Link>
+          ))
+        )}
+      </HomeCarouselSection>
+    );
+  } catch {
+    return (
+      <HomeCarouselSection
+        title="Popular brands"
+        viewAllHref="/brands"
+        viewAllLabel="View All Brands"
+        className="border-t bg-muted/20"
+      >
+        <div className="flex shrink-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 px-8 py-12 text-sm text-muted-foreground w-[140px] sm:w-[160px]">
+          No brands yet
+        </div>
+      </HomeCarouselSection>
+    );
+  }
+}
+
+async function CarStoriesSection() {
+  try {
+    const { articles } = await searchArticles({ pageSize: 8 });
+    return (
+      <HomeCarouselSection
+        title="Car visual stories"
+        viewAllHref="/reviews"
+        viewAllLabel="View All Car Visual Stories"
+        className="border-t"
+      >
+        {articles.length === 0 ? (
+          <div className="flex shrink-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 px-8 py-12 text-sm text-muted-foreground w-[260px] sm:w-[280px]">
+            No stories yet
+          </div>
+        ) : (
+          articles.map((a) => (
+            <ArticleStoryCard
+              key={a.id}
+              title={a.title}
+              slug={a.slug}
+              heroMediaUrl={a.heroMediaUrl}
+            />
+          ))
+        )}
+      </HomeCarouselSection>
+    );
+  } catch {
+    return (
+      <HomeCarouselSection
+        title="Car visual stories"
+        viewAllHref="/reviews"
+        viewAllLabel="View All Car Visual Stories"
+        className="border-t"
+      >
+        <div className="flex shrink-0 items-center justify-center rounded-xl border border-dashed bg-muted/30 px-8 py-12 text-sm text-muted-foreground w-[260px] sm:w-[280px]">
+          No stories yet
+        </div>
+      </HomeCarouselSection>
+    );
+  }
+}
+
+function CarouselSkeleton() {
   return (
-    <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
-      <div className="mb-6 flex items-center justify-between">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-4 w-24" />
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Skeleton key={i} className="h-[200px] w-full rounded-xl" />
+    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <Skeleton className="mb-4 h-8 w-56" />
+      <div className="flex gap-4 overflow-hidden">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-[220px] w-[280px] shrink-0 rounded-xl" />
         ))}
+      </div>
+      <div className="mt-3 flex items-center justify-between">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="size-9 rounded-full" />
       </div>
     </section>
   );
@@ -194,83 +404,28 @@ export default function HomePage() {
         <HomeHeroSection />
       </Suspense>
 
-      <Suspense fallback={null}>
-        <NewlyLaunchedSection />
+      <Suspense fallback={<CarouselSkeleton />}>
+        <MostSearchedSection />
       </Suspense>
 
-      {/* Body type pills + search (static, shows immediately) */}
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <h2 className="mb-4 text-2xl font-bold tracking-tight">
-          The most searched new cars
-        </h2>
-        <div className="flex flex-wrap items-center gap-2">
-          {(["SUV", "HATCHBACK", "SEDAN", "MUV", "LUXURY"] as const)
-            .filter((k) => BODY_TYPE_LABELS[k])
-            .map((key) => (
-              <Link
-                key={key}
-                href={`/new-cars?bodyType=${key}`}
-                className="rounded-full border bg-muted/50 px-4 py-2 text-sm font-medium transition-colors hover:border-primary hover:bg-primary/10 hover:text-primary"
-              >
-                {BODY_TYPE_LABELS[key]}
-              </Link>
-            ))}
-          <Link
-            href="/new-cars"
-            className="ml-2 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            <Search className="size-4" />
-            Search
-          </Link>
-        </div>
-      </section>
-
-      <Suspense fallback={<PopularCarsSkeleton />}>
-        <PopularCarsSection />
+      <Suspense fallback={<CarouselSkeleton />}>
+        <ElectricCarsSection />
       </Suspense>
 
-      {/* Browse by Body Type (static) */}
-      <section className="border-t bg-muted/20 py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="mb-6 text-2xl font-bold tracking-tight">
-            Browse by Body Type
-          </h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {Object.entries(BODY_TYPE_LABELS).map(([key, label]) => (
-              <Link
-                key={key}
-                href={`/new-cars?bodyType=${key}`}
-                className="group flex flex-col items-center gap-2 rounded-xl border bg-card p-4 text-center transition-all hover:shadow-md hover:border-primary/20"
-              >
-                <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 transition-colors group-hover:bg-primary/20">
-                  <Car className="size-5 text-primary" />
-                </div>
-                <span className="text-sm font-medium group-hover:text-primary">
-                  {label}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <Suspense
-        fallback={
-          <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-            <Skeleton className="mb-6 h-8 w-40" />
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <Skeleton key={i} className="h-24 rounded-lg" />
-              ))}
-            </div>
-          </section>
-        }
-      >
-        <BrandsSection />
+      <Suspense fallback={<CarouselSkeleton />}>
+        <UpcomingCarsSection />
       </Suspense>
 
-      <Suspense fallback={null}>
-        <UpcomingSection />
+      <Suspense fallback={<CarouselSkeleton />}>
+        <LatestCarsSection />
+      </Suspense>
+
+      <Suspense fallback={<CarouselSkeleton />}>
+        <PopularBrandsCarouselSection />
+      </Suspense>
+
+      <Suspense fallback={<CarouselSkeleton />}>
+        <CarStoriesSection />
       </Suspense>
 
       {/* Compare CTA (static) */}
