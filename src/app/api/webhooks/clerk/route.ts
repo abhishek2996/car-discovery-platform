@@ -131,7 +131,7 @@ export async function POST(request: Request) {
       const image = d.image_url ?? null;
 
       try {
-        await prisma.user.updateMany({
+        const updated = await prisma.user.updateMany({
           where: { id },
           data: {
             ...(email && { email }),
@@ -139,6 +139,51 @@ export async function POST(request: Request) {
             ...(image !== undefined && { image }),
           },
         });
+        // Email/password sign-up: user may be created in Clerk before email is set; we skipped user.created.
+        // When they verify or add email, user.updated fires — create the row if it doesn't exist yet.
+        if (updated.count === 0 && email) {
+          try {
+            await prisma.user.upsert({
+              where: { id },
+              create: {
+                id,
+                email,
+                name,
+                image,
+                role: "BUYER",
+              },
+              update: {
+                ...(email && { email }),
+                ...(name !== undefined && { name }),
+                ...(image !== undefined && { image }),
+              },
+            });
+            console.log("[webhooks/clerk] user.updated created missing row (e.g. email/password)", id, email);
+          } catch (createErr: unknown) {
+            const pe = createErr as { code?: string; meta?: { target?: string[] } };
+            if (pe.code === "P2002" && Array.isArray(pe.meta?.target) && pe.meta.target.includes("email")) {
+              const existing = await prisma.user.findUnique({ where: { email } });
+              if (existing && existing.id !== id) {
+                const oldId = existing.id;
+                await prisma.$transaction([
+                  prisma.account.updateMany({ where: { userId: oldId }, data: { userId: id } }),
+                  prisma.session.updateMany({ where: { userId: oldId }, data: { userId: id } }),
+                  prisma.dealer.updateMany({ where: { userId: oldId }, data: { userId: id } }),
+                  prisma.lead.updateMany({ where: { buyerId: oldId }, data: { buyerId: id } }),
+                  prisma.testDriveSlot.updateMany({ where: { buyerId: oldId }, data: { buyerId: id } }),
+                  prisma.savedComparison.updateMany({ where: { userId: oldId }, data: { userId: id } }),
+                  prisma.savedSearch.updateMany({ where: { userId: oldId }, data: { userId: id } }),
+                  prisma.review.updateMany({ where: { authorId: oldId }, data: { authorId: id } }),
+                  prisma.contentArticle.updateMany({ where: { authorId: oldId }, data: { authorId: id } }),
+                  prisma.user.update({ where: { email }, data: { id, name, image } }),
+                ]);
+                console.log("[webhooks/clerk] user.updated claimed existing row by email", id, email);
+              }
+            } else {
+              throw createErr;
+            }
+          }
+        }
       } catch (dbErr) {
         console.error("[webhooks/clerk] user.updated DB error", id, dbErr);
         return NextResponse.json(
