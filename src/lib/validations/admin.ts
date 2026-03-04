@@ -17,7 +17,13 @@ function optionalNumber<T extends z.ZodNumber>(schema: T) {
 
 export const carBrandSchema = z.object({
   name: z.string().min(1, "Brand name is required").max(100),
-  slug: z.string().min(1, "Slug is required").max(100).regex(/^[a-z0-9-]+$/, "Slug must be lowercase with hyphens only"),
+  slug: z
+    .string()
+    .max(100)
+    .regex(/^[a-z0-9-]*$/, "Slug must be lowercase with hyphens only")
+    .optional()
+    .or(z.literal(""))
+    .transform((v) => (typeof v === "string" && v.trim() ? v.trim() : undefined)),
   country: z.string().max(100).optional().or(z.literal("")),
   logoUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
 });
@@ -26,7 +32,13 @@ export type CarBrandFormValues = z.infer<typeof carBrandSchema>;
 export const carModelSchema = z.object({
   brandId: z.string().min(1, "Brand is required"),
   name: z.string().min(1, "Model name is required").max(100),
-  slug: z.string().min(1, "Slug is required").max(100).regex(/^[a-z0-9-]+$/, "Slug must be lowercase with hyphens only"),
+  slug: z
+    .string()
+    .max(100)
+    .regex(/^[a-z0-9-]*$/, "Slug must be lowercase with hyphens only")
+    .optional()
+    .or(z.literal(""))
+    .transform((v) => (typeof v === "string" && v.trim() ? v.trim() : undefined)),
   bodyType: optionalSelect,
   segment: z.string().max(50).optional().or(z.literal("")),
   minPrice: z.coerce.number().nonnegative().optional(),

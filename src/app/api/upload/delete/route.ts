@@ -28,10 +28,8 @@ export async function DELETE(request: Request) {
       deleteKey = getKeyFromR2Url(url);
     }
     if (!deleteKey) {
-      return NextResponse.json(
-        { success: false, error: "Missing key or url query parameter" },
-        { status: 400 }
-      );
+      // External URL (not from R2) – nothing to delete, treat as success
+      return NextResponse.json({ success: true });
     }
 
     await deleteFromR2(deleteKey);

@@ -49,12 +49,11 @@ export function BrandForm({ action, defaultValues }: BrandFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="slug">Slug *</Label>
+        <Label htmlFor="slug">Slug (optional)</Label>
         <Input
           id="slug"
           name="slug"
-          required
-          placeholder="e.g. audi"
+          placeholder="Leave blank to auto-generate from name (e.g. audi)"
           defaultValue={defaultValues?.slug ?? ""}
         />
         {state?.errors?.slug && (

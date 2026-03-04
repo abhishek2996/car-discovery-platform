@@ -17,6 +17,8 @@ interface ImageUploadProps {
   onChange: (urls: string[]) => void;
   maxFiles?: number;
   label?: string;
+  /** Allow video in addition to images (upload + URL) */
+  allowVideo?: boolean;
 }
 
 export function ImageUpload({
@@ -25,6 +27,7 @@ export function ImageUpload({
   onChange,
   maxFiles = 10,
   label = "Upload images",
+  allowVideo = false,
 }: ImageUploadProps) {
   const folder = ENDPOINT_TO_FOLDER[endpoint] ?? endpoint;
   return (
@@ -34,6 +37,7 @@ export function ImageUpload({
       onChange={onChange}
       maxFiles={maxFiles}
       label={label}
+      allowVideo={allowVideo}
     />
   );
 }
@@ -43,6 +47,8 @@ interface SingleImageUploadProps {
   value: string;
   onChange: (url: string) => void;
   label?: string;
+  /** Allow video in addition to image (e.g. for hero) */
+  allowVideo?: boolean;
 }
 
 export function SingleImageUpload({
@@ -50,6 +56,7 @@ export function SingleImageUpload({
   value,
   onChange,
   label = "Upload image",
+  allowVideo = false,
 }: SingleImageUploadProps) {
   const folder = ENDPOINT_TO_FOLDER[endpoint] ?? endpoint;
   return (
@@ -58,7 +65,7 @@ export function SingleImageUpload({
       value={value}
       onUploadComplete={onChange}
       label={label}
-      maxFiles={1}
+      allowVideo={allowVideo}
     />
   );
 }

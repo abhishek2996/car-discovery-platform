@@ -15,6 +15,7 @@ import {
   upcomingCarSchema,
   heroSlideSchema,
 } from "@/lib/validations/admin";
+import { slugify, ensureUniqueBrandSlug, ensureUniqueModelSlug } from "@/lib/slug";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/types";
 
@@ -25,10 +26,15 @@ export async function createBrand(_prev: ActionResult | null, formData: FormData
   const parsed = carBrandSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return { success: false, message: "Validation failed.", errors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
 
-  const existing = await prisma.carBrand.findUnique({ where: { slug: parsed.data.slug } });
-  if (existing) return { success: false, message: "A brand with this slug already exists." };
-
-  await prisma.carBrand.create({ data: { name: parsed.data.name, slug: parsed.data.slug, country: parsed.data.country || null, logoUrl: parsed.data.logoUrl || null } });
+  let slug: string;
+  if (parsed.data.slug) {
+    const existing = await prisma.carBrand.findUnique({ where: { slug: parsed.data.slug } });
+    if (existing) return { success: false, message: "A brand with this slug already exists." };
+    slug = parsed.data.slug;
+  } else {
+    slug = await ensureUniqueBrandSlug(slugify(parsed.data.name));
+  }
+  await prisma.carBrand.create({ data: { name: parsed.data.name, slug, country: parsed.data.country || null, logoUrl: parsed.data.logoUrl || null } });
   revalidatePath("/admin/catalog");
   return { success: true, message: "Brand created." };
 }
@@ -38,7 +44,15 @@ export async function updateBrand(id: string, _prev: ActionResult | null, formDa
   const parsed = carBrandSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return { success: false, message: "Validation failed.", errors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
 
-  await prisma.carBrand.update({ where: { id }, data: { name: parsed.data.name, slug: parsed.data.slug, country: parsed.data.country || null, logoUrl: parsed.data.logoUrl || null } });
+  let slug: string;
+  if (parsed.data.slug) {
+    const existing = await prisma.carBrand.findFirst({ where: { slug: parsed.data.slug, id: { not: id } } });
+    if (existing) return { success: false, message: "A brand with this slug already exists." };
+    slug = parsed.data.slug;
+  } else {
+    slug = await ensureUniqueBrandSlug(slugify(parsed.data.name), id);
+  }
+  await prisma.carBrand.update({ where: { id }, data: { name: parsed.data.name, slug, country: parsed.data.country || null, logoUrl: parsed.data.logoUrl || null } });
   revalidatePath("/admin/catalog");
   return { success: true, message: "Brand updated." };
 }
@@ -61,6 +75,15 @@ export async function createModel(_prev: ActionResult | null, formData: FormData
   const parsed = carModelSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return { success: false, message: "Validation failed.", errors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
 
+  let slug: string;
+  if (parsed.data.slug) {
+    const existing = await prisma.carModel.findFirst({ where: { brandId: parsed.data.brandId, slug: parsed.data.slug } });
+    if (existing) return { success: false, message: "A model with this slug already exists for this brand." };
+    slug = parsed.data.slug;
+  } else {
+    slug = await ensureUniqueModelSlug(parsed.data.brandId, slugify(parsed.data.name));
+  }
+
   const imageUrlsRaw = parsed.data.imageUrls?.trim();
   let imageUrlsArr: string[] = [];
   if (imageUrlsRaw) {
@@ -77,7 +100,7 @@ export async function createModel(_prev: ActionResult | null, formData: FormData
     data: {
       brandId: parsed.data.brandId,
       name: parsed.data.name,
-      slug: parsed.data.slug,
+      slug,
       bodyType: (parsed.data.bodyType || null) as never,
       segment: parsed.data.segment || null,
       minPrice: parsed.data.minPrice ?? null,
@@ -93,6 +116,15 @@ export async function updateModel(id: string, _prev: ActionResult | null, formDa
   await requireAdmin();
   const parsed = carModelSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return { success: false, message: "Validation failed.", errors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
+
+  let slug: string;
+  if (parsed.data.slug) {
+    const existing = await prisma.carModel.findFirst({ where: { brandId: parsed.data.brandId, slug: parsed.data.slug, id: { not: id } } });
+    if (existing) return { success: false, message: "A model with this slug already exists for this brand." };
+    slug = parsed.data.slug;
+  } else {
+    slug = await ensureUniqueModelSlug(parsed.data.brandId, slugify(parsed.data.name), id);
+  }
 
   const imageUrlsRaw = parsed.data.imageUrls?.trim();
   let imageUrlsArr: string[] = [];
@@ -111,7 +143,7 @@ export async function updateModel(id: string, _prev: ActionResult | null, formDa
     data: {
       brandId: parsed.data.brandId,
       name: parsed.data.name,
-      slug: parsed.data.slug,
+      slug,
       bodyType: (parsed.data.bodyType || null) as never,
       segment: parsed.data.segment || null,
       minPrice: parsed.data.minPrice ?? null,

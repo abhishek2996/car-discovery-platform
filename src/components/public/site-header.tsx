@@ -185,8 +185,7 @@ export function SiteHeader() {
           <div className="hidden sm:block">
             <CitySelector />
           </div>
-            <CitySelector />
-          </div>
+        </div>
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">

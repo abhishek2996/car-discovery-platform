@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Use local temp dir for dev when set (avoids EBUSY/.smbdelete on SMB/network volumes)
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
   images: {
     remotePatterns: [
       {

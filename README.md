@@ -14,7 +14,15 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+You should see `[car-discovery] run-dev.mjs: port 3000, ...` and then Next.js on **port 3000**. Open [http://localhost:3000](http://localhost:3000) with your browser.
+
+**If you see port 3003 or "Failed to proxy" / "middleware deprecated":** the running process was started with an old config. Stop it (Ctrl+C), then start again from the project root.
+
+**To force the correct dev server (bypasses npm/IDE):** in a **new** terminal, from the project root run:
+```bash
+node scripts/run-dev.mjs
+```
+You must see `[car-discovery] run-dev.mjs: port 3000, ...` and `Local: http://127.0.0.1:3000`. Then open http://localhost:3000. If your IDE keeps starting an old command, use this in a separate terminal instead of the IDE’s Run button.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

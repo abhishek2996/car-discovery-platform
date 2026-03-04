@@ -2,10 +2,37 @@
 
 import { useCallback, useRef, useState } from "react";
 import Image from "next/image";
-import { GripVertical, Loader2, Trash2, Upload } from "lucide-react";
+import { GripVertical, Loader2, Link as LinkIcon, Trash2, Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm"];
+const ALLOWED_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
+
+function isVideoUrl(url: string): boolean {
+  try {
+    const path = new URL(url).pathname.toLowerCase();
+    return /\.(mp4|webm|mov)(\?|$)/i.test(path) || url.includes("youtube.com") || url.includes("youtu.be") || url.includes("vimeo.com");
+  } catch {
+    return false;
+  }
+}
+
+function isValidMediaUrl(url: string): boolean {
+  try {
+    new URL(url);
+    const path = new URL(url).pathname.toLowerCase();
+    const hasImageExt = /\.(jpe?g|png|webp|gif)(\?|$)/i.test(path);
+    const hasVideoExt = /\.(mp4|webm|mov)(\?|$)/i.test(path);
+    const isEmbed = /youtube\.com|youtu\.be|vimeo\.com/.test(url);
+    return hasImageExt || hasVideoExt || isEmbed;
+  } catch {
+    return false;
+  }
+}
 
 export interface MultiImageUploaderProps {
   value: string[];
@@ -14,6 +41,8 @@ export interface MultiImageUploaderProps {
   folder: string;
   maxFiles?: number;
   label?: string;
+  /** Allow video in addition to images (upload + URL) */
+  allowVideo?: boolean;
 }
 
 export function MultiImageUploader({
@@ -23,23 +52,31 @@ export function MultiImageUploader({
   folder,
   maxFiles = 10,
   label = "Upload images",
+  allowVideo = false,
 }: MultiImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [urlInput, setUrlInput] = useState("");
+  const [urlError, setUrlError] = useState<string | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const validateAndUpload = useCallback(
     async (file: File) => {
       if (!ALLOWED_TYPES.includes(file.type)) {
-        const msg = "Invalid type. Use JPEG, PNG or WebP.";
+        const msg = allowVideo
+          ? "Invalid type. Use JPEG, PNG, WebP, or MP4/WebM for video."
+          : "Invalid type. Use JPEG, PNG or WebP.";
         setError(msg);
         onUploadError?.(msg);
         return;
       }
-      if (file.size > MAX_SIZE) {
-        const msg = "File too large. Max 5MB.";
+      const maxSize = ALLOWED_VIDEO_TYPES.includes(file.type) ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
+      if (file.size > maxSize) {
+        const msg = ALLOWED_VIDEO_TYPES.includes(file.type)
+          ? "Video too large. Max 50MB."
+          : "File too large. Max 5MB.";
         setError(msg);
         onUploadError?.(msg);
         return;
@@ -91,8 +128,27 @@ export function MultiImageUploader({
         setProgress(0);
       }
     },
-    [folder, value, maxFiles, onChange, onUploadError]
+    [folder, value, maxFiles, onChange, onUploadError, allowVideo]
   );
+
+  const handleAddByUrl = useCallback(() => {
+    const raw = urlInput.trim();
+    if (!raw) {
+      setUrlError("Enter an image or video URL.");
+      return;
+    }
+    if (!isValidMediaUrl(raw)) {
+      setUrlError("Enter a valid image or video URL (e.g. .jpg, .png, .mp4, or YouTube/Vimeo link).");
+      return;
+    }
+    if (value.length >= maxFiles) {
+      setUrlError(`Maximum ${maxFiles} items allowed.`);
+      return;
+    }
+    setUrlError(null);
+    setUrlInput("");
+    onChange([...value, raw]);
+  }, [urlInput, value, maxFiles, onChange]);
 
   const removeImage = useCallback(
     async (url: string, index: number) => {
@@ -128,58 +184,75 @@ export function MultiImageUploader({
 
   const onDragOver = (e: React.DragEvent) => e.preventDefault();
 
+  const accept = allowVideo
+    ? ".jpg,.jpeg,.png,.webp,.mp4,.webm,image/jpeg,image/png,image/webp,video/mp4,video/webm"
+    : ".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp";
+
   return (
     <div className="space-y-3">
       {label && <p className="text-sm font-medium">{label}</p>}
       {value.length > 0 && (
         <div className="flex flex-wrap gap-3">
-          {value.map((url, index) => (
-            <div
-              key={url}
-              draggable
-              onDragStart={() => setDraggedIndex(index)}
-              onDragEnd={() => setDraggedIndex(null)}
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = "move";
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                if (draggedIndex !== null && draggedIndex !== index) {
-                  moveImage(draggedIndex, index);
-                  setDraggedIndex(null);
-                }
-              }}
-              className={`group relative flex h-24 w-24 cursor-grab items-center justify-center overflow-hidden rounded-lg border bg-muted active:cursor-grabbing ${
-                draggedIndex === index ? "ring-2 ring-primary" : ""
-              }`}
-            >
-              <Image
-                src={url}
-                alt=""
-                fill
-                className="object-cover"
-                sizes="96px"
-                unoptimized
-              />
-              <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeImage(url, index);
-                  }}
-                  className="rounded-full bg-destructive p-1.5 text-destructive-foreground"
-                  title="Delete"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-                <span className="cursor-grab text-white" title="Drag to reorder">
-                  <GripVertical className="h-4 w-4" />
-                </span>
+          {value.map((url, index) => {
+            const isVideo = isVideoUrl(url);
+            return (
+              <div
+                key={`${url}-${index}`}
+                draggable
+                onDragStart={() => setDraggedIndex(index)}
+                onDragEnd={() => setDraggedIndex(null)}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (draggedIndex !== null && draggedIndex !== index) {
+                    moveImage(draggedIndex, index);
+                    setDraggedIndex(null);
+                  }
+                }}
+                className={`group relative flex h-24 w-24 cursor-grab items-center justify-center overflow-hidden rounded-lg border bg-muted active:cursor-grabbing ${
+                  draggedIndex === index ? "ring-2 ring-primary" : ""
+                }`}
+              >
+                {isVideo ? (
+                  <video
+                    src={url}
+                    className="h-full w-full object-cover"
+                    preload="metadata"
+                    muted
+                    playsInline
+                  />
+                ) : (
+                  <Image
+                    src={url}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="96px"
+                    unoptimized
+                  />
+                )}
+                <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeImage(url, index);
+                    }}
+                    className="rounded-full bg-destructive p-1.5 text-destructive-foreground"
+                    title="Delete"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                  <span className="cursor-grab text-white" title="Drag to reorder">
+                    <GripVertical className="h-4 w-4" />
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
       {value.length < maxFiles && (
@@ -195,7 +268,7 @@ export function MultiImageUploader({
             <input
               ref={inputRef}
               type="file"
-              accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+              accept={accept}
               className="hidden"
               onChange={onFileChange}
               disabled={uploading}
@@ -215,13 +288,36 @@ export function MultiImageUploader({
               <>
                 <Upload className="h-6 w-6 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  Drop images here or click to browse
+                  Drop files here or click to browse
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  JPEG, PNG or WebP, max 5MB. {maxFiles - value.length} remaining.
+                  {allowVideo
+                    ? "Images (5MB) or video (50MB). "
+                    : ""}
+                  {maxFiles - value.length} remaining.
                 </span>
               </>
             )}
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+            <div className="flex-1 space-y-1">
+              <Input
+                type="url"
+                placeholder="Or paste image/video URL..."
+                value={urlInput}
+                onChange={(e) => {
+                  setUrlInput(e.target.value);
+                  setUrlError(null);
+                }}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddByUrl())}
+                className="h-9"
+              />
+              {urlError && <p className="text-xs text-destructive">{urlError}</p>}
+            </div>
+            <Button type="button" variant="secondary" size="sm" onClick={handleAddByUrl} className="shrink-0">
+              <LinkIcon className="mr-1.5 h-3.5 w-3.5" />
+              Add URL
+            </Button>
           </div>
           {error && <p className="text-xs text-destructive">{error}</p>}
         </>

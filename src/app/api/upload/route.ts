@@ -2,13 +2,18 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { uploadToR2 } from "@/lib/r2";
 
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm"];
+const ALLOWED_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
+const MAX_SIZE_IMAGE = 5 * 1024 * 1024; // 5MB
+const MAX_SIZE_VIDEO = 50 * 1024 * 1024; // 50MB
 
 function getExt(mime: string): string {
   if (mime === "image/jpeg") return "jpg";
   if (mime === "image/png") return "png";
   if (mime === "image/webp") return "webp";
+  if (mime === "video/mp4") return "mp4";
+  if (mime === "video/webm") return "webm";
   return "jpg";
 }
 
@@ -44,15 +49,22 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: `Invalid file type. Allowed: ${ALLOWED_TYPES.join(", ")}`,
+          error: `Invalid file type. Allowed: images (JPEG, PNG, WebP) and videos (MP4, WebM). Max image 5MB, max video 50MB.`,
         },
         { status: 400 }
       );
     }
 
-    if (file.size > MAX_SIZE_BYTES) {
+    const maxSize = ALLOWED_VIDEO_TYPES.includes(file.type) ? MAX_SIZE_VIDEO : MAX_SIZE_IMAGE;
+    if (file.size > maxSize) {
       return NextResponse.json(
-        { success: false, error: "File too large. Max size 5MB." },
+        {
+          success: false,
+          error:
+            file.type.startsWith("video/")
+              ? "Video too large. Max size 50MB."
+              : "File too large. Max size 5MB.",
+        },
         { status: 400 }
       );
     }

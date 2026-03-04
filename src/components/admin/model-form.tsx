@@ -99,12 +99,11 @@ export function ModelForm({ action, brands, defaultValues }: ModelFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="slug">Slug *</Label>
+          <Label htmlFor="slug">Slug (optional)</Label>
           <Input
             id="slug"
             name="slug"
-            required
-            placeholder="e.g. a4"
+            placeholder="Leave blank to auto-generate from name (e.g. a4)"
             defaultValue={defaultValues?.slug ?? ""}
           />
           {state?.errors?.slug && (

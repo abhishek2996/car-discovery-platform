@@ -16,12 +16,14 @@
 # next.js
 /.next/
 /out/
+/var/
 
 # production
 /build
 
 # misc
 .DS_Store
+dev-last-run.txt
 *.pem
 
 # debug
