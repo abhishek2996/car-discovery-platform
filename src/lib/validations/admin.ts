@@ -51,7 +51,13 @@ export type CarModelFormValues = z.infer<typeof carModelSchema>;
 export const carVariantSchema = z.object({
   modelId: z.string().min(1, "Model is required"),
   name: z.string().min(1, "Variant name is required").max(100),
-  slug: z.string().min(1, "Slug is required").max(100).regex(/^[a-z0-9-]+$/, "Slug must be lowercase with hyphens only"),
+  slug: z
+    .string()
+    .max(100)
+    .regex(/^[a-z0-9-]*$/, "Slug must be lowercase with hyphens only")
+    .optional()
+    .or(z.literal(""))
+    .transform((v) => (typeof v === "string" && v.trim() ? v.trim() : undefined)),
   fuelType: optionalSelect,
   transmission: optionalSelect,
   engine: z.string().max(200).optional().or(z.literal("")),

@@ -60,3 +60,29 @@ export async function ensureUniqueModelSlug(
     slug = `${baseSlug}-${n}`;
   }
 }
+
+/**
+ * Returns a slug that is unique for the given model (among its variants).
+ * If the base slug is taken, appends -2, -3, etc.
+ */
+export async function ensureUniqueVariantSlug(
+  modelId: string,
+  baseSlug: string,
+  excludeVariantId?: string
+): Promise<string> {
+  const { prisma } = await import("@/lib/db");
+  let slug = baseSlug;
+  let n = 1;
+  for (;;) {
+    const existing = await prisma.carVariant.findFirst({
+      where: {
+        modelId,
+        slug,
+        ...(excludeVariantId ? { id: { not: excludeVariantId } } : {}),
+      },
+    });
+    if (!existing) return slug;
+    n += 1;
+    slug = `${baseSlug}-${n}`;
+  }
+}

@@ -74,12 +74,11 @@ export function VariantForm({ action, modelId, backHref, defaultValues }: Varian
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="slug">Slug *</Label>
+          <Label htmlFor="slug">Slug (optional)</Label>
           <Input
             id="slug"
             name="slug"
-            required
-            placeholder="e.g. 2-0-tdi-sport"
+            placeholder="Leave blank to auto-generate from name (e.g. 2-0-tdi-sport)"
             defaultValue={defaultValues?.slug ?? ""}
           />
           {state?.errors?.slug && (

@@ -15,7 +15,7 @@ import {
   upcomingCarSchema,
   heroSlideSchema,
 } from "@/lib/validations/admin";
-import { slugify, ensureUniqueBrandSlug, ensureUniqueModelSlug } from "@/lib/slug";
+import { slugify, ensureUniqueBrandSlug, ensureUniqueModelSlug, ensureUniqueVariantSlug } from "@/lib/slug";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/types";
 
@@ -193,13 +193,22 @@ export async function createVariant(_prev: ActionResult | null, formData: FormDa
   const parsed = carVariantSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return { success: false, message: "Validation failed.", errors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
 
+  let slug: string;
+  if (parsed.data.slug) {
+    const existing = await prisma.carVariant.findFirst({ where: { modelId: parsed.data.modelId, slug: parsed.data.slug } });
+    if (existing) return { success: false, message: "A variant with this slug already exists for this model." };
+    slug = parsed.data.slug;
+  } else {
+    slug = await ensureUniqueVariantSlug(parsed.data.modelId, slugify(parsed.data.name));
+  }
+
   const dims = variantDimensionsData(parsed.data);
 
   await prisma.carVariant.create({
     data: {
       modelId: parsed.data.modelId,
       name: parsed.data.name,
-      slug: parsed.data.slug,
+      slug,
       fuelType: (parsed.data.fuelType || null) as never,
       transmission: (parsed.data.transmission || null) as never,
       engine: parsed.data.engine || null,
@@ -227,6 +236,15 @@ export async function updateVariant(id: string, _prev: ActionResult | null, form
   const parsed = carVariantSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) return { success: false, message: "Validation failed.", errors: parsed.error.flatten().fieldErrors as Record<string, string[]> };
 
+  let slug: string;
+  if (parsed.data.slug) {
+    const existing = await prisma.carVariant.findFirst({ where: { modelId: parsed.data.modelId, slug: parsed.data.slug, id: { not: id } } });
+    if (existing) return { success: false, message: "A variant with this slug already exists for this model." };
+    slug = parsed.data.slug;
+  } else {
+    slug = await ensureUniqueVariantSlug(parsed.data.modelId, slugify(parsed.data.name), id);
+  }
+
   const dims = variantDimensionsData(parsed.data);
 
   await prisma.carVariant.update({
@@ -234,7 +252,7 @@ export async function updateVariant(id: string, _prev: ActionResult | null, form
     data: {
       modelId: parsed.data.modelId,
       name: parsed.data.name,
-      slug: parsed.data.slug,
+      slug,
       fuelType: (parsed.data.fuelType || null) as never,
       transmission: (parsed.data.transmission || null) as never,
       engine: parsed.data.engine || null,
