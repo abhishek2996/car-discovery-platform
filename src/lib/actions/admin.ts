@@ -98,7 +98,7 @@ export async function createModel(_prev: ActionResult | null, formData: FormData
 
   await prisma.carModel.create({
     data: {
-      brandId: parsed.data.brandId,
+      brand: { connect: { id: parsed.data.brandId } },
       name: parsed.data.name,
       slug,
       bodyType: (parsed.data.bodyType || null) as never,
@@ -106,6 +106,7 @@ export async function createModel(_prev: ActionResult | null, formData: FormData
       minPrice: parsed.data.minPrice ?? null,
       maxPrice: parsed.data.maxPrice ?? null,
       imageUrl: primaryUrl,
+      imageUrls: imageUrlsArr.length > 0 ? JSON.stringify(imageUrlsArr) : null,
     },
   });
   revalidatePath("/admin/catalog");
@@ -141,7 +142,7 @@ export async function updateModel(id: string, _prev: ActionResult | null, formDa
   await prisma.carModel.update({
     where: { id },
     data: {
-      brandId: parsed.data.brandId,
+      brand: { connect: { id: parsed.data.brandId } },
       name: parsed.data.name,
       slug,
       bodyType: (parsed.data.bodyType || null) as never,
@@ -149,6 +150,7 @@ export async function updateModel(id: string, _prev: ActionResult | null, formDa
       minPrice: parsed.data.minPrice ?? null,
       maxPrice: parsed.data.maxPrice ?? null,
       imageUrl: primaryUrl,
+      imageUrls: imageUrlsArr.length > 0 ? JSON.stringify(imageUrlsArr) : null,
     },
   });
   revalidatePath("/admin/catalog");

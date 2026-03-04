@@ -62,75 +62,6 @@ export function MultiImageUploader({
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const validateAndUpload = useCallback(
-    async (file: File) => {
-      if (!ALLOWED_TYPES.includes(file.type)) {
-        const msg = allowVideo
-          ? "Invalid type. Use JPEG, PNG, WebP, or MP4/WebM for video."
-          : "Invalid type. Use JPEG, PNG or WebP.";
-        setError(msg);
-        onUploadError?.(msg);
-        return;
-      }
-      const maxSize = ALLOWED_VIDEO_TYPES.includes(file.type) ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
-      if (file.size > maxSize) {
-        const msg = ALLOWED_VIDEO_TYPES.includes(file.type)
-          ? "Video too large. Max 50MB."
-          : "File too large. Max 5MB.";
-        setError(msg);
-        onUploadError?.(msg);
-        return;
-      }
-      if (value.length >= maxFiles) {
-        const msg = `Maximum ${maxFiles} images allowed.`;
-        setError(msg);
-        onUploadError?.(msg);
-        return;
-      }
-      setError(null);
-      setUploading(true);
-      setProgress(0);
-      try {
-        const formData = new FormData();
-        formData.set("file", file);
-        formData.set("folder", folder);
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", "/api/upload");
-        xhr.upload.addEventListener("progress", (e) => {
-          if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
-        });
-        const result = await new Promise<{ success: boolean; url?: string; error?: string }>(
-          (resolve, reject) => {
-            xhr.onload = () => {
-              try {
-                resolve(JSON.parse(xhr.responseText));
-              } catch {
-                reject(new Error("Invalid response"));
-              }
-            };
-            xhr.onerror = () => reject(new Error("Network error"));
-            xhr.send(formData);
-          }
-        );
-        if (result.success && result.url) {
-          onChange([...value, result.url]);
-        } else {
-          const msg = result.error ?? "Upload failed";
-          setError(msg);
-          onUploadError?.(msg);
-        }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : "Upload failed";
-        setError(msg);
-        onUploadError?.(msg);
-      } finally {
-        setUploading(false);
-        setProgress(0);
-      }
-    },
-    [folder, value, maxFiles, onChange, onUploadError, allowVideo]
-  );
-
   const handleAddByUrl = useCallback(() => {
     const raw = urlInput.trim();
     if (!raw) {
@@ -171,16 +102,82 @@ export function MultiImageUploader({
   };
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) validateAndUpload(file);
+    const files = e.target.files;
+    if (!files?.length) return;
+    const fileList = Array.from(files);
     e.target.value = "";
+    uploadFilesInOrder(fileList);
   };
 
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file) validateAndUpload(file);
+    const files = e.dataTransfer.files;
+    if (!files?.length) return;
+    const fileList = Array.from(files);
+    uploadFilesInOrder(fileList);
   };
+
+  /** Upload multiple files one after another and append each URL to value. */
+  const uploadFilesInOrder = useCallback(
+    async (fileList: File[]) => {
+      let currentValue = value;
+      for (const file of fileList) {
+        if (currentValue.length >= maxFiles) break;
+        if (!ALLOWED_TYPES.includes(file.type)) {
+          setError(allowVideo ? "Invalid type. Use JPEG, PNG, WebP, or MP4/WebM." : "Invalid type. Use JPEG, PNG or WebP.");
+          onUploadError?.(allowVideo ? "Invalid type. Use JPEG, PNG, WebP, or MP4/WebM." : "Invalid type. Use JPEG, PNG or WebP.");
+          continue;
+        }
+        const maxSize = ALLOWED_VIDEO_TYPES.includes(file.type) ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
+        if (file.size > maxSize) {
+          setError(ALLOWED_VIDEO_TYPES.includes(file.type) ? "Video too large. Max 50MB." : "File too large. Max 5MB.");
+          onUploadError?.(ALLOWED_VIDEO_TYPES.includes(file.type) ? "Video too large. Max 50MB." : "File too large. Max 5MB.");
+          continue;
+        }
+        setError(null);
+        setUploading(true);
+        setProgress(0);
+        try {
+          const formData = new FormData();
+          formData.set("file", file);
+          formData.set("folder", folder);
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", "/api/upload");
+          xhr.upload.addEventListener("progress", (e) => {
+            if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
+          });
+          const result = await new Promise<{ success: boolean; url?: string; error?: string }>(
+            (resolve, reject) => {
+              xhr.onload = () => {
+                try {
+                  resolve(JSON.parse(xhr.responseText));
+                } catch {
+                  reject(new Error("Invalid response"));
+                }
+              };
+              xhr.onerror = () => reject(new Error("Network error"));
+              xhr.send(formData);
+            }
+          );
+          if (result.success && result.url) {
+            currentValue = [...currentValue, result.url];
+            onChange(currentValue);
+          } else {
+            const msg = result.error ?? "Upload failed";
+            setError(msg);
+            onUploadError?.(msg);
+          }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : "Upload failed";
+          setError(msg);
+          onUploadError?.(msg);
+        }
+      }
+      setUploading(false);
+      setProgress(0);
+    },
+    [folder, value, maxFiles, onChange, onUploadError, allowVideo]
+  );
 
   const onDragOver = (e: React.DragEvent) => e.preventDefault();
 
@@ -269,6 +266,7 @@ export function MultiImageUploader({
               ref={inputRef}
               type="file"
               accept={accept}
+              multiple
               className="hidden"
               onChange={onFileChange}
               disabled={uploading}

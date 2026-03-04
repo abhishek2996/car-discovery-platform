@@ -62,6 +62,23 @@ export default async function CarDetailPage({ params }: { params: PageParams }) 
     imageUrl: v.imageUrl,
   }));
 
+  const modelImageUrls: string[] =
+    typeof car.imageUrls === "string" && car.imageUrls.trim()
+      ? (() => {
+          try {
+            const arr = JSON.parse(car.imageUrls) as unknown;
+            return Array.isArray(arr) ? arr.filter((u): u is string => typeof u === "string") : [];
+          } catch {
+            return [];
+          }
+        })()
+      : [];
+  const galleryMain = modelImageUrls[0] ?? car.imageUrl ?? null;
+  const galleryRest =
+    modelImageUrls.length > 1
+      ? modelImageUrls.slice(1)
+      : (car.variants.map((v) => v.imageUrl).filter(Boolean) as string[]);
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       {/* Breadcrumb */}
@@ -81,10 +98,10 @@ export default async function CarDetailPage({ params }: { params: PageParams }) 
       <div className="grid gap-8 lg:grid-cols-5">
         <div className="lg:col-span-3">
           <ImageGallery
-            mainImage={car.imageUrl}
+            mainImage={galleryMain}
             brandName={car.brand.name}
             modelName={car.name}
-            variantImages={car.variants.map((v) => v.imageUrl).filter(Boolean) as string[]}
+            variantImages={galleryRest}
             videoUrl={car.videoUrl}
           />
         </div>
