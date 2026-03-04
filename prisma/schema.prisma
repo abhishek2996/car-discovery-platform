@@ -122,6 +122,7 @@ model CarModel {
   minPrice     Decimal?      @db.Decimal(12, 2)
   maxPrice     Decimal?      @db.Decimal(12, 2)
   imageUrl     String?
+  videoUrl     String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   brand        CarBrand      @relation(fields: [brandId], references: [id], onDelete: Cascade)

@@ -85,6 +85,7 @@ export default async function CarDetailPage({ params }: { params: PageParams }) 
             brandName={car.brand.name}
             modelName={car.name}
             variantImages={car.variants.map((v) => v.imageUrl).filter(Boolean) as string[]}
+            videoUrl={car.videoUrl}
           />
         </div>
         <div className="space-y-6 lg:col-span-2">
