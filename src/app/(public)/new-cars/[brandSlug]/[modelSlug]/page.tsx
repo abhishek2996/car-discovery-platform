@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { getCarModelWithDetails, getExpertReviewsForModel, getSimilarCars } from "@/lib/data/cars";
+import { getDealersWithModelInventory, getPlatformDealerForTestDrive } from "@/lib/data/dealers";
 import { ImageGallery } from "@/components/public/car-detail/image-gallery";
 import { PriceSummary } from "@/components/public/car-detail/price-summary";
 import { KeyHighlights } from "@/components/public/car-detail/key-highlights";
@@ -10,6 +11,7 @@ import { VariantSelector } from "@/components/public/car-detail/variant-selector
 import { ExpertReviewSummary } from "@/components/public/car-detail/expert-reviews";
 import { UserReviews } from "@/components/public/car-detail/user-reviews";
 import { SimilarCars } from "@/components/public/car-detail/similar-cars";
+import { CarDetailActions } from "@/components/public/car-detail/car-detail-actions";
 
 type PageParams = Promise<{ brandSlug: string; modelSlug: string }>;
 
@@ -28,10 +30,32 @@ export default async function CarDetailPage({ params }: { params: PageParams }) 
   const car = await getCarModelWithDetails(brandSlug, modelSlug);
   if (!car) notFound();
 
-  const [expertReviews, similarCars] = await Promise.all([
+  const [expertReviews, similarCars, dealersWithModelInventory, platformDealer] = await Promise.all([
     getExpertReviewsForModel(car.id),
     getSimilarCars(car.id, car.bodyType, car.segment),
+    getDealersWithModelInventory(car.id),
+    getPlatformDealerForTestDrive(),
   ]);
+
+  const modelVariants = car.variants.map((v) => ({ id: v.id, name: v.name }));
+  const dealersWithVariantsForActions =
+    dealersWithModelInventory.length > 0
+      ? dealersWithModelInventory.map((d) => ({
+          dealerId: d.dealer.id,
+          dealerName: d.dealer.name,
+          variants: d.variants,
+          isPlatformFallback: false as const,
+        }))
+      : platformDealer && modelVariants.length > 0
+        ? [
+            {
+              dealerId: platformDealer.id,
+              dealerName: platformDealer.name,
+              variants: modelVariants,
+              isPlatformFallback: true as const,
+            },
+          ]
+        : [];
 
   const allUserReviews = car.variants.flatMap((v) =>
     v.reviews.map((r) => ({ ...r, variantName: v.name }))
@@ -124,7 +148,14 @@ export default async function CarDetailPage({ params }: { params: PageParams }) 
             minPrice={car.minPrice ? Number(car.minPrice) : null}
             maxPrice={car.maxPrice ? Number(car.maxPrice) : null}
             variantCount={car.variants.length}
-          />
+          >
+            <CarDetailActions
+              carModelId={car.id}
+              brandSlug={car.brand.slug}
+              carName={`${car.brand.name} ${car.name}`}
+              dealersWithVariants={dealersWithVariantsForActions}
+            />
+          </PriceSummary>
           <KeyHighlights variants={car.variants} bodyType={car.bodyType} segment={car.segment} />
         </div>
       </div>

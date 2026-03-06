@@ -14,7 +14,7 @@ import { UK_CITIES } from "@/lib/constants";
 
 const COOKIE_NAME = "city";
 
-function getCityCookie(): string | null {
+export function getCityCookie(): string | null {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(
     new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]*)`),

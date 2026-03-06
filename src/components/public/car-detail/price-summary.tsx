@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { formatPrice } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 
@@ -5,9 +6,10 @@ interface PriceSummaryProps {
   minPrice: number | null;
   maxPrice: number | null;
   variantCount: number;
+  children?: ReactNode;
 }
 
-export function PriceSummary({ minPrice, maxPrice, variantCount }: PriceSummaryProps) {
+export function PriceSummary({ minPrice, maxPrice, variantCount, children }: PriceSummaryProps) {
   const priceRange =
     minPrice && maxPrice
       ? `${formatPrice(minPrice)} – ${formatPrice(maxPrice)}`
@@ -26,20 +28,7 @@ export function PriceSummary({ minPrice, maxPrice, variantCount }: PriceSummaryP
           {variantCount} variants available
         </Badge>
       )}
-      <div className="mt-4 flex gap-2">
-        <a
-          href="#variants"
-          className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          View All Variants
-        </a>
-        <a
-          href="#reviews"
-          className="inline-flex h-9 items-center justify-center rounded-lg border bg-background px-4 text-sm font-medium transition-colors hover:bg-accent"
-        >
-          Read Reviews
-        </a>
-      </div>
+      {children && <div className="mt-4">{children}</div>}
     </div>
   );
 }

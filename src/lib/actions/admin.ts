@@ -36,6 +36,8 @@ export async function createBrand(_prev: ActionResult | null, formData: FormData
   }
   await prisma.carBrand.create({ data: { name: parsed.data.name, slug, country: parsed.data.country || null, logoUrl: parsed.data.logoUrl || null } });
   revalidatePath("/admin/catalog");
+  revalidatePath("/");
+  revalidatePath("/brands");
   return { success: true, message: "Brand created." };
 }
 
@@ -54,6 +56,8 @@ export async function updateBrand(id: string, _prev: ActionResult | null, formDa
   }
   await prisma.carBrand.update({ where: { id }, data: { name: parsed.data.name, slug, country: parsed.data.country || null, logoUrl: parsed.data.logoUrl || null } });
   revalidatePath("/admin/catalog");
+  revalidatePath("/");
+  revalidatePath("/brands");
   return { success: true, message: "Brand updated." };
 }
 
@@ -65,6 +69,8 @@ export async function deleteBrand(id: string): Promise<ActionResult> {
 
   await prisma.carBrand.delete({ where: { id } });
   revalidatePath("/admin/catalog");
+  revalidatePath("/");
+  revalidatePath("/brands");
   return { success: true, message: "Brand deleted." };
 }
 

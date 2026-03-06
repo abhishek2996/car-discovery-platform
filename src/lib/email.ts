@@ -1,6 +1,10 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResend(): Resend | null {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return null;
+  return new Resend(key);
+}
 
 const FROM_EMAIL = process.env.FROM_EMAIL ?? "CarDiscovery <noreply@cardiscovery.co.uk>";
 
@@ -12,7 +16,8 @@ type SendEmailOptions = {
 };
 
 export async function sendEmail({ to, subject, html, replyTo }: SendEmailOptions) {
-  if (!process.env.RESEND_API_KEY) {
+  const resend = getResend();
+  if (!resend) {
     console.warn("[email] RESEND_API_KEY not set – skipping email:", subject);
     return { success: false, error: "RESEND_API_KEY not configured" };
   }

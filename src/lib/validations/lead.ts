@@ -43,3 +43,14 @@ export const alertMeSchema = z.object({
 });
 
 export type AlertMeFormValues = z.infer<typeof alertMeSchema>;
+
+export const offerBrochureFormSchema = z.object({
+  carModelId: z.string().min(1, "Car model is required"),
+  brandSlug: z.string().min(1, "Brand is required"),
+  city: z.string().min(1, "Please select your city"),
+  email: z.string().email("Invalid email address"),
+  countryCode: z.string().min(1, "Country code is required"),
+  phoneNumber: z.string().min(10, "Mobile number must be at least 10 digits"),
+  intent: z.enum(["offer", "brochure"]),
+});
+export type OfferBrochureFormValues = z.infer<typeof offerBrochureFormSchema>;

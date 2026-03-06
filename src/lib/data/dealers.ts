@@ -87,3 +87,64 @@ export async function getDealersForCar(brandSlug: string, city?: string) {
     take: 10,
   });
 }
+
+/** Dealers that have at least one variant of the given model in inventory (for test drive). */
+export async function getDealersWithModelInventory(modelId: string) {
+  const items = await prisma.dealerInventoryItem.findMany({
+    where: {
+      visibility: "VISIBLE",
+      variant: { modelId },
+    },
+    select: {
+      dealerId: true,
+      variantId: true,
+      dealer: {
+        select: { id: true, name: true, slug: true },
+      },
+      variant: {
+        select: {
+          id: true,
+          name: true,
+          model: { select: { name: true, brand: { select: { name: true } } } },
+        },
+      },
+    },
+  });
+
+  const byDealer = new Map<
+    string,
+    { dealer: { id: string; name: string; slug: string }; variants: { id: string; name: string }[] }
+  >();
+  for (const item of items) {
+    const existing = byDealer.get(item.dealerId);
+    const variant = { id: item.variant.id, name: item.variant.name };
+    if (!existing) {
+      byDealer.set(item.dealerId, {
+        dealer: item.dealer,
+        variants: [variant],
+      });
+    } else if (!existing.variants.some((v) => v.id === variant.id)) {
+      existing.variants.push(variant);
+    }
+  }
+  return Array.from(byDealer.values());
+}
+
+/** Platform dealer used for test drive requests when no dealer has this model in inventory (team books manually on official dealer site). */
+const PLATFORM_TEST_DRIVE_SLUG = "test-drive-requests";
+
+export async function getPlatformDealerForTestDrive(): Promise<{ id: string; name: string } | null> {
+  const byId = process.env.PLATFORM_DEALER_ID;
+  if (byId) {
+    const dealer = await prisma.dealer.findUnique({
+      where: { id: byId },
+      select: { id: true, name: true },
+    });
+    if (dealer) return dealer;
+  }
+  const bySlug = await prisma.dealer.findUnique({
+    where: { slug: PLATFORM_TEST_DRIVE_SLUG },
+    select: { id: true, name: true },
+  });
+  return bySlug;
+}

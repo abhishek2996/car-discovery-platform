@@ -75,6 +75,29 @@ export const SORT_OPTIONS = [
 
 export const PAGE_SIZE = 12;
 
+export const COUNTRY_CODES = [
+  { code: "+44", country: "UK" },
+  { code: "+353", country: "Ireland" },
+  { code: "+1", country: "US/Canada" },
+  { code: "+91", country: "India" },
+  { code: "+61", country: "Australia" },
+  { code: "+49", country: "Germany" },
+  { code: "+33", country: "France" },
+  { code: "+34", country: "Spain" },
+  { code: "+39", country: "Italy" },
+  { code: "+31", country: "Netherlands" },
+  { code: "+32", country: "Belgium" },
+  { code: "+43", country: "Austria" },
+  { code: "+48", country: "Poland" },
+  { code: "+46", country: "Sweden" },
+  { code: "+47", country: "Norway" },
+  { code: "+45", country: "Denmark" },
+  { code: "+358", country: "Finland" },
+  { code: "+971", country: "UAE" },
+  { code: "+65", country: "Singapore" },
+  { code: "+81", country: "Japan" },
+] as const;
+
 export function formatPrice(price: number | string): string {
   const num = typeof price === "string" ? parseFloat(price) : price;
   if (isNaN(num)) return "TBA";

@@ -2,7 +2,8 @@
 
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { enquiryFormSchema, testDriveFormSchema, reviewFormSchema } from "@/lib/validations/lead";
+import { getDealersForCar } from "@/lib/data/dealers";
+import { enquiryFormSchema, testDriveFormSchema, reviewFormSchema, offerBrochureFormSchema } from "@/lib/validations/lead";
 import {
   sendEmail,
   enquiryConfirmationEmail,
@@ -82,6 +83,102 @@ export async function submitEnquiry(_prev: ActionResult | null, formData: FormDa
   }
 
   return { success: true, message: "Your enquiry has been submitted. The dealer will contact you soon." };
+}
+
+export async function submitOfferOrBrochureRequest(
+  _prev: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
+  const session = await getSession();
+  if (!session?.user?.id) {
+    return { success: false, message: "You must be signed in to request an offer or brochure." };
+  }
+
+  const raw = Object.fromEntries(formData.entries());
+  const parsed = offerBrochureFormSchema.safeParse(raw);
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: "Please fix the errors below.",
+      errors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+    };
+  }
+
+  const { carModelId, brandSlug, city, email, countryCode, phoneNumber, intent } = parsed.data;
+  const phone = `${countryCode} ${phoneNumber}`.trim();
+  const dealers = await getDealersForCar(brandSlug, city);
+  if (dealers.length === 0) {
+    return {
+      success: false,
+      message: "No dealer found in your city for this brand. Try another city or contact us.",
+      errors: { city: ["No dealer in this city"] },
+    };
+  }
+
+  const dealer = dealers[0];
+  const intentText = intent === "offer" ? "Requesting offer" : "Requesting brochure";
+  const message = `${intentText}. Email: ${email}, Phone: ${phone}, City: ${city}`;
+
+  await prisma.lead.create({
+    data: {
+      buyerId: session.user.id,
+      dealerId: dealer.id,
+      type: "ENQUIRY",
+      status: "NEW",
+      source: "car_detail",
+      carModelId,
+      carVariantId: null,
+      message,
+    },
+  });
+
+  const [dealerFull, buyer, carModel] = await Promise.all([
+    prisma.dealer.findUnique({ where: { id: dealer.id }, select: { name: true, email: true } }),
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { name: true, email: true } }),
+    prisma.carModel.findUnique({
+      where: { id: carModelId },
+      select: { name: true, brand: { select: { name: true } } },
+    }),
+  ]);
+
+  const carName = carModel ? `${carModel.brand.name} ${carModel.name}` : undefined;
+
+  if (buyer?.email) {
+    sendEmail({
+      to: buyer.email,
+      subject: "Your request has been received – CarDiscovery",
+      html: enquiryConfirmationEmail(
+        buyer.name || "",
+        dealerFull?.name || "the dealer",
+        carName
+      ),
+    }).catch(() => {});
+  }
+
+  if (dealerFull?.email) {
+    sendEmail({
+      to: dealerFull.email,
+      subject: `New ${intent === "offer" ? "offer" : "brochure"} request from ${buyer?.name || "a customer"}`,
+      html: newLeadNotificationEmail(
+        dealerFull.name,
+        buyer?.name || "",
+        email,
+        "ENQUIRY",
+        carName,
+        message,
+      ),
+      replyTo: email,
+    }).catch(() => {});
+  }
+
+  return {
+    success: true,
+    message:
+      intent === "offer"
+        ? "Your offer has been sent to your email successfully. Check your inbox and the dealer will be in touch soon."
+        : "Your brochure has been sent to your email successfully. Check your inbox and the dealer will be in touch soon.",
+  };
 }
 
 export async function submitTestDriveRequest(_prev: ActionResult | null, formData: FormData): Promise<ActionResult> {
